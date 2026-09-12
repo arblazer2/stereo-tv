@@ -64,14 +64,7 @@ class VisualizerChannel(Channel):
         d = self.d
         surface.fill(D.BLACK)
         safe = d.safe
-        bar = pygame.Rect(0, safe.top, d.w, 44)
-        pygame.draw.rect(surface, D.BLUE, bar)
-        pygame.draw.rect(surface, D.CYAN, bar.inflate(0, 4), 2)
-        d.text(f"{self.number:02d}  {self.name}", "md", D.WHITE, (safe.left + 8, bar.centery), anchor="midleft")
-        rel = self.now.release
-        if rel:
-            d.text(d.fit_text(f"{rel.artist} · {rel.title}", "sm", 330), "sm", D.YELLOW,
-                   (safe.right - 8, bar.centery), anchor="midright")
+        bar = self.header(surface, self.now_line())
 
         # oscilloscope strip
         scope = pygame.Rect(safe.left, bar.bottom + 14, safe.width, 90)
