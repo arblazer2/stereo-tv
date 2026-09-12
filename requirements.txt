@@ -1,0 +1,8 @@
+# Prefer apt: python3-pygame python3-numpy python3-requests
+pygame>=2.5
+numpy
+requests
+shazamio>=0.8
+audioop-lts; python_version >= '3.13'   # pydub needs audioop, removed in 3.13
+# optional fallback: pyacoustid (+ apt libchromaprint-tools)
+pyserial   # wired CYD remote

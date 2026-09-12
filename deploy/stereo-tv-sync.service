@@ -1,0 +1,15 @@
+[Unit]
+Description=stereo-tv: sync Discogs collection, covers, tracklists, wiki
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=__USER__
+WorkingDirectory=__APPDIR__
+ExecStart=__APPDIR__/.venv/bin/python -m stereotv.discogs sync
+ExecStart=__APPDIR__/.venv/bin/python -m stereotv.discogs tracks
+ExecStart=__APPDIR__/.venv/bin/python -m stereotv.discogs wiki
+ExecStart=__APPDIR__/.venv/bin/python -m stereotv.discogs musicbrainz
+ExecStart=__APPDIR__/.venv/bin/python -m stereotv.discogs market
+Nice=10

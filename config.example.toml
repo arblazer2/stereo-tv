@@ -1,0 +1,112 @@
+# `python -m stereotv.setup` writes ~/.config/stereo-tv/config.toml for you. This file documents every key.
+
+[app]
+contact = "https://github.com/you/stereo-tv"   # public APIs want a contact URL or email in the User-Agent
+
+[location]                 # set by setup (geocoded from a ZIP / "City, ST"); drives weather + radar
+name = "Your Town"
+lat = 0.0
+lon = 0.0
+units = "imperial"         # imperial | metric
+
+[discogs]
+username = "your-discogs-username"
+# token file (one line). Default: ~/.config/stereo-tv/discogs_token
+# user_agent = ""          # derived from app.contact when empty
+
+[display]
+width = 640
+height = 480
+fps = 30
+scanlines = true
+fullscreen = true
+sdl_debug = false   # true = SDL verbose log to journal
+drift = false       # CRT burn-in guard: nudge the whole picture a few px every few minutes
+drift_px = 2
+drift_seconds = 180
+
+[dial]
+mode = "keyboard"   # keyboard | adc | encoder (later)
+
+[now_playing]
+# Dev/demo only: pin a Discogs release id at startup (-1 = built-in sample).
+# 0 = nothing playing until the identifier or the web page says otherwise.
+release_id = 0
+
+[audio]
+enabled = true
+# ALSA capture device. `arecord -l` lists cards; the Behringer UCA202 shows up as "CODEC".
+device = "plughw:CARD=CODEC,DEV=0"
+# dev/test: loop an audio file instead of capturing (WAV natively, others need ffmpeg):
+# device = "file:/home/you/test.wav"
+rate = 44100
+channels = 2
+# capture gain applied at startup (survives reboots). Line-level into the USB-C dongle's mic input: ~40%.
+# mixer_control = "Mic"
+# mixer_gain = "40%"
+
+[identify]
+enabled = true
+clip_seconds = 10          # length of clip sent to the recognizer
+interval = 60              # retry spacing while unmatched
+settle_seconds = 4         # wait after audio starts before first attempt
+silence_rms = 0.004        # below this = silence (0..1 full scale); tune with journal -v
+silence_gap_seconds = 2.5  # a gap this long = side flip / new record -> re-identify
+min_confidence = 0.55      # collection match threshold
+override_minutes = 30      # manual pick pauses auto-ID this long
+recheck_seconds = 150      # locked but no track durations known: re-identify this often
+verify_seconds = 20        # after the track clock advances, confirm with a lookup this soon
+clear_after_seconds = 300  # this much silence -> "nothing playing" (last played is remembered)
+acoustid_api_key = ""      # optional fallback; https://acoustid.org/new-application
+
+[web]
+enabled = true
+host = "0.0.0.0"
+port = 8080
+
+[visualizer]
+gain_db = 0      # bar/scope boost. Line-in: 0. Mic pickup: 10-15.
+
+[screensaver]
+enabled = true
+idle_seconds = 90        # silence before the bouncing-cover screensaver; any audio or key wakes it
+wake_ratio = 1.5         # audio must exceed silence_rms * this ...
+wake_hold_seconds = 1.0  # ... for this long before the screensaver clears (ignores room-noise blips)
+modes = ["wall", "flying", "weather", "bounce"]   # rotate through these, one per idle period ("record" also available)
+key_wake_seconds = 300   # any key / channel change wakes it and holds it off this long
+
+[weather]
+provider = "open-meteo"    # open-meteo (free, no key, uses [location]) | homeassistant
+
+[ha]
+# Only for provider = "homeassistant".
+url = ""                   # e.g. "http://homeassistant.local:8123"
+weather_entity = "weather.home"
+# long-lived access token (HA -> profile -> Security -> Long-lived access tokens), one line:
+# token_file = "~/.config/stereo-tv/ha_token"
+
+[radar]
+# Channel 10: RainViewer radar over a cached OpenStreetMap base. Centre/title default to [location].
+enabled = true
+# lat = 34.85
+# lon = -92.4
+zoom = 7        # 7 = state-wide; 8 = regional; 9 = county
+frames = 8      # past frames to animate (10 min apart)
+color = 4       # RainViewer palette: 4 = The Weather Channel style, 2 = universal blue
+# title = "ARKANSAS"
+map_brightness = 185   # 0-255; base map dimming so radar stands out. 255 = untouched OSM colours
+
+[news]
+# Channel 13 RSS sources: [name, url]. Any RSS 2.0 feed works.
+feeds = [
+  ["PITCHFORK", "https://pitchfork.com/feed/feed-news/rss"],
+  ["ROLLING STONE", "https://www.rollingstone.com/music/music-news/feed/"],
+  ["STEREOGUM", "https://www.stereogum.com/feed/"],
+  ["NME", "https://www.nme.com/news/music/feed"],
+]
+
+[remote]
+# Wired touchscreen remote (ESP32 CYD over USB serial). See remote/cyd/.
+enabled = true
+port = "auto"      # or "/dev/ttyUSB0"
+baud = 115200

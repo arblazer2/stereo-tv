@@ -1,0 +1,21 @@
+[Unit]
+Description=stereo-tv fake cable TV display
+After=multi-user.target systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+
+[Service]
+Type=simple
+User=__USER__
+Group=__USER__
+SupplementaryGroups=video render input tty audio dialout
+WorkingDirectory=__APPDIR__
+Environment=SDL_VIDEODRIVER=kmsdrm
+Environment=SDL_AUDIODRIVER=dummy
+Environment=SDL_NOMOUSE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=__APPDIR__/.venv/bin/python -m stereotv
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
