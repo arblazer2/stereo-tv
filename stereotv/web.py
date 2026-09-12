@@ -8,7 +8,7 @@ Stdlib only (ThreadingHTTPServer). Runs in a background thread on the LAN.
     POST /api/clear                             -> resume auto-ID
     GET  /api/channel / POST {"channel": N}     -> read / change the channel remotely
     GET  /api/audio         -> line-in level (rms, dB, peak) for gain tuning
-    GET  /api/theme / POST ?theme=name -> read / switch the theme (cable88, prevue, teletext, phosphor)
+    GET  /api/theme / POST ?theme=name -> read / switch the theme (see themes.py)
     POST /api/screensaver {"mode": "flying"|"weather"|"bounce"|null} -> start the screensaver now
     GET  /covers/<id>.jpg   -> cached cover art
 """

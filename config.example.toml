@@ -20,7 +20,7 @@ height = 480
 fps = 30
 scanlines = true
 fullscreen = true
-theme = "cable88"   # cable88 | prevue | teletext | phosphor  (T key cycles; phone page has a picker)
+theme = "cable88"   # cable88 | prevue | teletext | phosphor | vaporwave | amber | weather95 | arcade  (T cycles)
 sdl_debug = false   # true = SDL verbose log to journal
 drift = false       # CRT burn-in guard: nudge the whole picture a few px every few minutes
 drift_px = 2

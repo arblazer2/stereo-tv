@@ -135,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--weather", choices=["open-meteo", "homeassistant"])
     ap.add_argument("--ha-url"); ap.add_argument("--ha-token"); ap.add_argument("--ha-entity", default="weather.home")
     ap.add_argument("--zoom", type=int, help="radar zoom: 7 state, 8 region, 9 county")
-    ap.add_argument("--theme", choices=["cable88", "prevue", "teletext", "phosphor"])
+    ap.add_argument("--theme", choices=["cable88", "prevue", "teletext", "phosphor", "vaporwave", "amber", "weather95", "arcade"])
     ap.add_argument("--yes", action="store_true", help="no prompts; fail on anything missing")
     ap.add_argument("--no-sync", action="store_true")
     a = ap.parse_args(argv)
@@ -220,7 +220,7 @@ def main(argv: list[str] | None = None) -> int:
         tok = a.ha_token or ask("HA long-lived access token (hidden)", secret=True)
         save_secret(Path(config.DEFAULTS["ha"]["token_file"]), tok)
 
-    v["theme"] = a.theme or (ask("Look: cable88 (late-80s cable), prevue, teletext, phosphor", "cable88") if interactive else "cable88")
+    v["theme"] = a.theme or (ask("Look: cable88 (late-80s cable), prevue, teletext, phosphor, vaporwave, amber, weather95, arcade", "cable88") if interactive else "cable88")
     path = write_config(v)
     print(f"\n✓ wrote {path}")
     if not a.no_sync and (a.yes or ask("Sync your Discogs collection now? (y/n)", "y").lower().startswith("y")):

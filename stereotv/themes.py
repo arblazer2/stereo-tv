@@ -46,6 +46,38 @@ THEMES: dict[str, dict] = {
                    "AMBER": (200, 255, 190), "RED": (220, 255, 200), "GREEN": (90, 255, 110)},
         "font": VT323, "mono": VT323, "scale": 1.3, "shadow": False,
     },
+    # deep purple, magenta + cyan, pastel pink
+    "vaporwave": {
+        "label": "VAPORWAVE",
+        "colors": {"BLACK": (10, 4, 24), "WHITE": (255, 230, 250), "GREY": (170, 140, 200), "DARK": (28, 10, 56),
+                   "NAVY": (44, 14, 84), "BLUE": (110, 30, 160), "CYAN": (0, 240, 255), "YELLOW": (255, 105, 180),
+                   "AMBER": (255, 160, 220), "RED": (255, 60, 120), "GREEN": (120, 255, 200)},
+        "font": DEJAVU_BOLD, "mono": DEJAVU_MONO, "scale": 1.0, "shadow": True,
+    },
+    # amber monochrome terminal
+    "amber": {
+        "label": "AMBER",
+        "colors": {"BLACK": (8, 4, 0), "WHITE": (255, 200, 90), "GREY": (150, 100, 30), "DARK": (16, 8, 0),
+                   "NAVY": (26, 12, 0), "BLUE": (70, 36, 0), "CYAN": (240, 170, 60), "YELLOW": (255, 220, 120),
+                   "AMBER": (255, 240, 160), "RED": (255, 230, 150), "GREEN": (255, 190, 70)},
+        "font": VT323, "mono": VT323, "scale": 1.3, "shadow": False,
+    },
+    # 90s Weather Channel: blue and gold, white type
+    "weather95": {
+        "label": "WEATHER '95",
+        "colors": {"BLACK": (0, 0, 0), "WHITE": (255, 255, 255), "GREY": (200, 205, 230), "DARK": (10, 20, 90),
+                   "NAVY": (20, 40, 140), "BLUE": (40, 70, 190), "CYAN": (255, 215, 90), "YELLOW": (255, 215, 90),
+                   "AMBER": (255, 180, 50), "RED": (255, 90, 90), "GREEN": (140, 255, 160)},
+        "font": DEJAVU_BOLD, "mono": DEJAVU_MONO, "scale": 1.0, "shadow": True,
+    },
+    # arcade cabinet marquee: black + neon primaries, pixel type
+    "arcade": {
+        "label": "ARCADE",
+        "colors": {"BLACK": (0, 0, 0), "WHITE": (255, 255, 255), "GREY": (150, 150, 160), "DARK": (12, 0, 12),
+                   "NAVY": (30, 0, 40), "BLUE": (0, 90, 255), "CYAN": (0, 220, 255), "YELLOW": (255, 230, 0),
+                   "AMBER": (255, 120, 0), "RED": (255, 30, 60), "GREEN": (0, 255, 120)},
+        "font": VT323, "mono": VT323, "scale": 1.3, "shadow": False,
+    },
 }
 ORDER = list(THEMES)
 
