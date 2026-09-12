@@ -128,6 +128,7 @@ class App:
         self.saving = False
         self.saver_request = False
         self.theme_request: str | None = None
+        self.theme_osd_left = 0.0
         self.key_wake_s = float(sc.get("key_wake_seconds", 300))   # a key press keeps it awake this long
         self.awake_until = 0.0
         self.manual_saver = False      # started by key/API: audio doesn't wake it, only a key does
@@ -210,7 +211,19 @@ class App:
                 ch._tick_surf = None
                 ch._loaded = 0.0
         self.snow_left = SNOW_TIME
-        self.osd_left = OSD_TIME
+        self.theme_osd_left = 2.5
+
+    def draw_theme_osd(self, surface: pygame.Surface) -> None:
+        from stereotv import themes
+        d = self.d
+        label = themes.get(d.theme).get("label", d.theme.upper())
+        f = d.fonts["md"]
+        w = f.size(label)[0] + 48
+        box = pygame.Rect(0, 0, w, 48)
+        box.midbottom = (d.w // 2, d.safe.bottom - 6)
+        pygame.draw.rect(surface, D.BLACK, box)
+        pygame.draw.rect(surface, D.YELLOW, box, 2)
+        d.text(label, "md", D.YELLOW, box.center, anchor="center", shadow=False)
 
     def wake(self, manual: bool = False) -> None:
         """Leave the screensaver. manual=True (key/dial/API) also holds it off for a while."""
@@ -333,6 +346,10 @@ class App:
             if self.osd_left > 0:
                 self.osd_left -= dt
                 self.draw_osd(self.d.surface)
+            if self.theme_osd_left > 0:
+                self.theme_osd_left -= dt
+                if self.snow_left <= 0:
+                    self.draw_theme_osd(self.d.surface)
             dt = self.d.flip()
             frames += 1
             if frames % (self.d.fps * 30) == 0:
