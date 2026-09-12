@@ -17,7 +17,7 @@ POPPINS_REG = str(FONT_DIR / "Poppins-Regular.ttf")
 
 # "style" = layout layer. Missing keys fall back to the classic cable-box look.
 CABLE_STYLE = {"layout": "cable", "radius": 0, "backdrop": False}
-MODERN_STYLE = {"layout": "modern", "radius": 12, "backdrop": True}
+MODERN_STYLE = {"layout": "modern", "radius": 12, "backdrop": True, "backdrop_tone": "dark"}
 
 THEMES: dict[str, dict] = {
     # the original: late-80s cable box
@@ -92,6 +92,15 @@ THEMES: dict[str, dict] = {
                    "AMBER": (255, 180, 90), "RED": (255, 95, 95), "GREEN": (70, 220, 130)},
         "font": POPPINS, "font2": POPPINS_REG, "mono": DEJAVU_MONO, "scale": 0.95, "shadow": False,
         "style": MODERN_STYLE,
+    },
+    # modern light: warm white, dark type, blue accent, cover washed out behind
+    "modernlight": {
+        "label": "MODERN LIGHT",
+        "colors": {"BLACK": (246, 244, 240), "WHITE": (22, 22, 26), "GREY": (118, 118, 128), "DARK": (255, 255, 255),
+                   "NAVY": (236, 234, 229), "BLUE": (222, 219, 212), "CYAN": (30, 110, 200), "YELLOW": (22, 22, 26),
+                   "AMBER": (200, 120, 30), "RED": (205, 60, 60), "GREEN": (40, 160, 90)},
+        "font": POPPINS, "font2": POPPINS_REG, "mono": DEJAVU_MONO, "scale": 0.95, "shadow": False,
+        "style": {**MODERN_STYLE, "backdrop_tone": "light"},
     },
 }
 ORDER = list(THEMES)

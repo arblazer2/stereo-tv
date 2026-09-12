@@ -15,12 +15,17 @@ username = "your-discogs-username"
 # user_agent = ""          # derived from app.contact when empty
 
 [display]
+# The canvas the channels are drawn on. It is scaled to the monitor, aspect preserved.
+#   CRT / 4:3 monitor:  640 x 480      (the design target)
+#   16:9 monitor:       854 x 480 fills the screen; or keep 640x480 for pillarboxed 4:3
 width = 640
 height = 480
+scaling = "gpu"     # gpu (crisp, letterboxed, cheap) | cpu (stretch by software; use if the GPU path fails)
+font_scale = 1.0    # >1 for a big monitor viewed from across the room
 fps = 30
 scanlines = true
 fullscreen = true
-theme = "cable88"   # cable88 | prevue | teletext | phosphor | vaporwave | amber | weather95 | arcade | moderndark  (T cycles)
+theme = "cable88"   # cable88 | prevue | teletext | phosphor | vaporwave | amber | weather95 | arcade | moderndark | modernlight  (T cycles)
 sdl_debug = false   # true = SDL verbose log to journal
 drift = false       # CRT burn-in guard: nudge the whole picture a few px every few minutes
 drift_px = 2

@@ -49,9 +49,11 @@ STYLE = {"layout": "cable", "radius": 0, "backdrop": False}
 class Display:
     def __init__(self, width: int = 640, height: int = 480, fps: int = 30,
                  fullscreen: bool = True, scanlines: bool = True, sdl_debug: bool = False,
-                 drift: bool = False, drift_px: int = 2, drift_seconds: float = 180.0, theme: str = "cable88"):
+                 drift: bool = False, drift_px: int = 2, drift_seconds: float = 180.0, theme: str = "cable88",
+                 scaling: str = "gpu", font_scale: float = 1.0):
         self.w, self.h = width, height
         self.theme = theme
+        self.font_scale = font_scale
         self.fps = fps
         self.scanlines_on = scanlines
         # CRT burn-in guard: shift the whole picture by up to ±drift_px every drift_seconds
@@ -74,10 +76,26 @@ class Display:
         flags = 0
         if fullscreen and os.environ.get("SDL_VIDEODRIVER") != "dummy":
             flags |= pygame.FULLSCREEN
-        self.screen = pygame.display.set_mode((width, height), flags)
+        self.screen = None
+        if scaling == "gpu" and os.environ.get("SDL_VIDEODRIVER") != "dummy":
+            # Let SDL scale the canvas on the GPU with the aspect preserved (letterboxed on 16:9):
+            # crisp on a 1080p monitor, free on the Pi. Falls back to CPU scaling if the driver refuses.
+            try:
+                self.screen = pygame.display.set_mode((width, height), flags | pygame.SCALED)
+                if self.screen.get_size() != (width, height):
+                    raise pygame.error("scaled mode returned an unexpected size")
+            except pygame.error as e:
+                log.warning("GPU scaling unavailable (%s); using CPU scaling", e)
+                self.screen = None
+        if self.screen is None:
+            self.screen = pygame.display.set_mode((width, height), flags)
         pygame.display.set_caption("stereo-tv")
-        log.info("video driver=%s mode=%s flags=%#x", pygame.display.get_driver(),
-                 self.screen.get_size(), self.screen.get_flags())
+        try:
+            desk = pygame.display.get_desktop_sizes()[0]
+        except Exception:  # noqa: BLE001
+            desk = None
+        log.info("video driver=%s canvas=%s output=%s flags=%#x", pygame.display.get_driver(),
+                 self.screen.get_size(), desk, self.screen.get_flags())
         # Everything renders into a 640x480 surface; if the screen is a different
         # size we scale on flip (kmsdrm may hand us the panel's native mode).
         self.surface = self.screen if self.screen.get_size() == (width, height) and not drift \
@@ -108,7 +126,7 @@ class Display:
         f2 = t.get("font2") or fp
         f2 = f2 if Path(f2).exists() else fp
         mp = t["mono"] if Path(t["mono"]).exists() else (_font_path(MONO_CANDIDATES) or fp)
-        k = float(t.get("scale", 1.0))
+        k = float(t.get("scale", 1.0)) * float(getattr(self, "font_scale", 1.0) or 1.0)
         self.fonts = {
             "xl": pygame.font.Font(fp, int(48 * k)),
             "lg": pygame.font.Font(fp, int(36 * k)),
@@ -148,8 +166,13 @@ class Display:
                 img = pygame.image.load(cover_path).convert()
                 tiny = pygame.transform.smoothscale(img, (20, 15))
                 bd = pygame.transform.smoothscale(tiny, (self.w, self.h))
-                veil = pygame.Surface((self.w, self.h)); veil.fill((70, 70, 75))
-                bd.blit(veil, (0, 0), special_flags=pygame.BLEND_RGB_MULT)   # ~27% brightness
+                if self.style.get("backdrop_tone") == "light":
+                    veil = pygame.Surface((self.w, self.h)); veil.fill((150, 150, 150))
+                    bd.blit(veil, (0, 0), special_flags=pygame.BLEND_RGB_ADD)    # washed out towards white
+                    veil.fill((225, 225, 225)); bd.blit(veil, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+                else:
+                    veil = pygame.Surface((self.w, self.h)); veil.fill((70, 70, 75))
+                    bd.blit(veil, (0, 0), special_flags=pygame.BLEND_RGB_MULT)   # ~27% brightness
             except Exception:  # noqa: BLE001
                 bd = pygame.Surface((self.w, self.h)); bd.fill(fill)
             if len(self._backdrops) > 6:

@@ -84,7 +84,8 @@ class App:
         self.d = D.Display(dc["width"], dc["height"], dc["fps"], dc["fullscreen"], dc["scanlines"],
                            sdl_debug=bool(dc.get("sdl_debug", False)),
                            drift=bool(dc.get("drift", False)), drift_px=int(dc.get("drift_px", 2)),
-                           drift_seconds=float(dc.get("drift_seconds", 180)), theme=dc.get("theme", "cable88"))
+                           drift_seconds=float(dc.get("drift_seconds", 180)), theme=dc.get("theme", "cable88"),
+                           scaling=dc.get("scaling", "gpu"), font_scale=float(dc.get("font_scale", 1.0)))
         self.now = NowPlaying()
         self.now.load_last_played(config.DATA_DIR / "last_played.json")
         if self.now.last_played:

@@ -32,6 +32,8 @@ DEFAULTS: dict[str, Any] = {
         "scanlines": True,
         "fullscreen": True,
         "theme": "cable88",
+        "scaling": "gpu",        # gpu = SDL scales the canvas, aspect preserved (letterbox); cpu = software scale
+        "font_scale": 1.0,
     },
     "dial": {"mode": "keyboard"},
     "now_playing": {"release_id": 0},

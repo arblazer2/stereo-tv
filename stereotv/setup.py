@@ -112,7 +112,8 @@ def write_config(values: dict) -> Path:
     lines += ["", "[weather]", f"provider = {toml_str(values['weather'])}"]
     if values["weather"] == "homeassistant":
         lines += ["", "[ha]", f"url = {toml_str(values['ha_url'])}", f"weather_entity = {toml_str(values['ha_entity'])}"]
-    lines += ["", "[display]", f"theme = {toml_str(values.get('theme', 'cable88'))}"]
+    lines += ["", "[display]", f"width = {values.get('width', 640)}", f"height = {values.get('height', 480)}",
+              f"theme = {toml_str(values.get('theme', 'cable88'))}"]
     lines += ["", "[radar]", f"zoom = {values['zoom']}", ""]
     config.CONFIG_FILE.write_text("\n".join(lines))
     return config.CONFIG_FILE
@@ -135,7 +136,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--weather", choices=["open-meteo", "homeassistant"])
     ap.add_argument("--ha-url"); ap.add_argument("--ha-token"); ap.add_argument("--ha-entity", default="weather.home")
     ap.add_argument("--zoom", type=int, help="radar zoom: 7 state, 8 region, 9 county")
-    ap.add_argument("--theme", choices=["cable88", "prevue", "teletext", "phosphor", "vaporwave", "amber", "weather95", "arcade", "moderndark"])
+    ap.add_argument("--theme", choices=["cable88", "prevue", "teletext", "phosphor", "vaporwave", "amber", "weather95", "arcade", "moderndark", "modernlight"])
+    ap.add_argument("--display", choices=["crt", "wide"], help="crt = 4:3 640x480 canvas; wide = 854x480 canvas for 16:9 monitors")
     ap.add_argument("--yes", action="store_true", help="no prompts; fail on anything missing")
     ap.add_argument("--no-sync", action="store_true")
     a = ap.parse_args(argv)
@@ -220,7 +222,11 @@ def main(argv: list[str] | None = None) -> int:
         tok = a.ha_token or ask("HA long-lived access token (hidden)", secret=True)
         save_secret(Path(config.DEFAULTS["ha"]["token_file"]), tok)
 
-    v["theme"] = a.theme or (ask("Look: cable88 (late-80s cable), prevue, teletext, phosphor, vaporwave, amber, weather95, arcade, moderndark", "cable88") if interactive else "cable88")
+    print("\nDisplay")
+    disp = a.display or (ask("Display: crt (4:3, CRT or old monitor) or wide (16:9 monitor/TV)", "crt") if interactive else "crt")
+    v["width"], v["height"] = (854, 480) if disp == "wide" else (640, 480)
+    v["theme"] = a.theme or (ask("Look: cable88 (late-80s cable), prevue, teletext, phosphor, vaporwave, amber, weather95, arcade, moderndark, modernlight",
+                                 "moderndark" if disp == "wide" else "cable88") if interactive else "cable88")
     path = write_config(v)
     print(f"\n✓ wrote {path}")
     if not a.no_sync and (a.yes or ask("Sync your Discogs collection now? (y/n)", "y").lower().startswith("y")):

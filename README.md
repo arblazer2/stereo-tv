@@ -20,7 +20,8 @@ playing, identified automatically from a line-in feed.
 - A phone page to search the collection and override what's showing.
 - Optional wired touchscreen remote (ESP32 "CYD"), see `remote/cyd/`.
 
-Designed for 640×480 at 30 fps on a Pi 3: big fonts, 4:3, safe margins, no desktop.
+Designed for 640×480 at 30 fps on a Pi 3: big fonts, 4:3, safe margins, no desktop. On a 16:9 monitor the
+canvas is GPU-scaled with side bars, or set an 854×480 canvas in the wizard to fill the screen.
 
 ## Hardware
 
@@ -63,7 +64,7 @@ If the screen stays black on a Pi with the KMS driver, add
 ## Using it
 
 - Keyboard: **←/→ or 1–9, 0** change channel · **Space** screensaver (again = next) ·
-  **T** cycle themes (Cable '88, Prevue, Teletext, Phosphor, Vaporwave, Amber, Weather '95, Arcade, Modern Dark) · **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it.
+  **T** cycle themes (Cable '88, Prevue, Teletext, Phosphor, Vaporwave, Amber, Weather '95, Arcade, Modern Dark, Modern Light) · **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it.
 - Phone: `http://<pi>:8080/` — search, tap a record to override auto-ID for 30 min.
 - API: `GET /api/now`, `GET /api/audio` (input level, for gain tuning),
   `POST /api/channel?channel=N`, `POST /api/screensaver?mode=wall`.
