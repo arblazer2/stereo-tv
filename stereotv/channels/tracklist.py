@@ -76,6 +76,7 @@ class TracklistChannel(Channel):
             if self.now.track_title:
                 d.text("NOW: " + d.fit_text(self.now.track_title, "sm", safe.right - x - 60), "sm", D.AMBER, (x, bar.bottom + 56))
             return
+        d.card(surface, pygame.Rect(safe.left - 8, bar.bottom + 6, safe.width + 16, safe.bottom - bar.bottom - 10))
         cols = [self._sides[self._page % len(self._sides)]]
         colw = safe.width
         cur_side, cur_pos = self.now.side, self.now.track
