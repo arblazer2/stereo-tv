@@ -90,8 +90,8 @@ class App:
         self.now.load_last_played(config.DATA_DIR / "last_played.json")
         self.state_path = config.DATA_DIR / "state.json"
         self.state = self._load_state()          # {"channel": n, "theme": name} — survives restarts/reboots
-        if self.state.get("theme"):
-            cfg["display"]["theme"] = self.state["theme"]
+        if self.state.get("theme") and self.state["theme"] != self.d.theme:
+            self.d.apply_theme(self.state["theme"])      # display was built from config; saved theme wins
         if self.now.last_played:
             log.info("last played: %s - %s", self.now.last_played.artist, self.now.last_played.title)
         self.dial = dial.make(cfg["dial"]["mode"])
