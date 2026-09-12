@@ -88,12 +88,18 @@ class App:
                            scaling=dc.get("scaling", "gpu"), font_scale=float(dc.get("font_scale", 1.0)))
         self.now = NowPlaying()
         self.now.load_last_played(config.DATA_DIR / "last_played.json")
+        self.state_path = config.DATA_DIR / "state.json"
+        self.state = self._load_state()          # {"channel": n, "theme": name} — survives restarts/reboots
+        if self.state.get("theme"):
+            cfg["display"]["theme"] = self.state["theme"]
         if self.now.last_played:
             log.info("last played: %s - %s", self.now.last_played.artist, self.now.last_played.title)
         self.dial = dial.make(cfg["dial"]["mode"])
         self.channels: dict[int, object] = {n: StaticChannel(self.d, self.now, n) for n in range(1, NUM_CHANNELS + 1)}
         self.channels[1] = NowPlayingChannel(self.d, self.now)
-        self.cur = 1
+        self.cur = int(self.state.get("channel") or 1)
+        if not 1 <= self.cur <= NUM_CHANNELS:
+            self.cur = 1
         self.snow_left = 0.0
         self.osd_left = OSD_TIME
         self.running = True
@@ -198,8 +204,24 @@ class App:
         log.info("now playing (hardcoded): %s - %s (%s)", rel.artist, rel.title, rel.year)
 
     # ------------------------------------------------------------
+    def _load_state(self) -> dict:
+        try:
+            import json
+            return json.loads(self.state_path.read_text())
+        except (OSError, ValueError):
+            return {}
+
+    def _save_state(self) -> None:
+        try:
+            import json
+            self.state_path.parent.mkdir(parents=True, exist_ok=True)
+            self.state_path.write_text(json.dumps({"channel": self.cur, "theme": self.d.theme}))
+        except OSError as e:
+            log.debug("state save: %s", e)
+
     def set_theme(self, name: str) -> None:
         self.d.apply_theme(name)
+        self._save_state()
         # channels cache rendered surfaces; bump NowPlaying's version so they rebuild
         self.now.version += 1
         for ch in self.channels.values():
@@ -286,6 +308,7 @@ class App:
         self.snow_left = SNOW_TIME
         self.osd_left = OSD_TIME
         log.info("channel %d (%s)", n, self.channels[n].name)
+        self._save_state()
 
     def handle_events(self) -> None:
         events = pygame.event.get()
