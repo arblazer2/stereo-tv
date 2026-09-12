@@ -4,7 +4,11 @@ A retro "cable TV" display for an analog stereo. A Raspberry Pi drives a CRT or
 small monitor with fake cable channels whose content follows whatever record is
 playing, identified automatically from a line-in feed.
 
-![channels](docs/channels.png)
+![stereo-tv channels](docs/screenshots/montage.png)
+
+Ten themes, from late-80s cable to modern dark and light:
+
+![themes](docs/screenshots/themes.png)
 
 **What it does**
 
@@ -22,6 +26,22 @@ playing, identified automatically from a line-in feed.
 
 Designed for 640×480 at 30 fps on a Pi 3: big fonts, 4:3, safe margins, no desktop. On a 16:9 monitor the
 canvas is GPU-scaled with side bars, or set an 854×480 canvas in the wizard to fill the screen.
+
+## The channels
+
+| | | |
+|---|---|---|
+| ![Now Playing](docs/screenshots/theme_cable88.png) **1 Now Playing** — cover, artist, album, year, label, side/track from auto-ID | ![Liner Notes](docs/screenshots/ch_liner_notes.png) **3 Liner Notes** — Wikipedia artist + album summaries, Discogs pressing notes | ![In Your Collection](docs/screenshots/ch_collection.png) **4 In Your Collection** — more by the artist, same label, same style |
+| ![Guide](docs/screenshots/ch_guide.png) **5 Guide** — Prevue-style scrolling listing of the whole collection | ![Tracklist](docs/screenshots/ch_tracklist.png) **6 Tracklist** — the side that's playing, current track highlighted | ![Stats](docs/screenshots/ch_stats.png) **7 Collection Stats** — by decade, top artists, labels, styles |
+| ![Random Spin](docs/screenshots/ch_random_spin.png) **8 Random Spin** — slot-machine picker; Enter re-spins, P plays it | ![Personnel](docs/screenshots/ch_personnel.png) **9 Personnel** — who played on the record | ![Radar](docs/screenshots/ch_radar.png) **10 Local Radar** — RainViewer over OpenStreetMap, animated |
+| ![Weather](docs/screenshots/ch_weather.png) **11 Weather** — "Local on the 8s": current, 5-day, radar | ![System](docs/screenshots/ch_system.png) **12 System Status** — temps, clocks, throttle flags, Wi-Fi, fps | ![News](docs/screenshots/ch_news.png) **13 Music News** — RSS headlines (Pitchfork, Rolling Stone, …) |
+| ![Value](docs/screenshots/ch_value.png) **15 Collection Value** — Discogs estimates as an 80s financial channel | ![Test pattern](docs/screenshots/ch_test_pattern.png) **16 Test Pattern** — SMPTE bars and a convergence grid | ![Modern](docs/screenshots/ch_now_playing_modern.png) **Modern Dark** — the same Now Playing in the modern layout |
+
+2 is the visualizer (spectrum + scope from the line-in) and 14 is This Day in Music (your records released on this date).
+
+Screensavers when the music stops: cover wall, flying covers, Local on the 8s weather, bouncing cover.
+
+![screensavers](docs/screenshots/saver_wall.png)
 
 ## Hardware
 
