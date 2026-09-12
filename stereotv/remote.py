@@ -80,7 +80,7 @@ class SerialRemote(threading.Thread):
             "ch": app.cur, "name": ch.name if ch else "",
             "np": f"{rel.artist} · {rel.title}" if rel else "",
             "st": app.now.status or ("" if rel else "NOTHING PLAYING"),
-            "sv": 1 if app.saving else 0,
+            "sv": 1 if getattr(app, "saving", False) else 0,
         }, separators=(",", ":"))
 
     # ------------------------------------------------------------ loop
@@ -116,7 +116,10 @@ class SerialRemote(threading.Thread):
                                     ser.write((reply + "\n").encode())
                         if time.monotonic() - last >= 1.0:
                             last = time.monotonic()
-                            ser.write((self.status() + "\n").encode())
+                            try:
+                                ser.write((self.status() + "\n").encode())
+                            except Exception as e:  # noqa: BLE001  (never let a status glitch kill the link)
+                                log.warning("status: %s", e)
             except (OSError, serial.SerialException) as e:
                 log.log(logging.DEBUG if self.connected is False else logging.WARNING, "remote %s: %s", port, e)
             self.connected = False

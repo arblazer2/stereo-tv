@@ -139,6 +139,8 @@ class App:
         self.key_wake_s = float(sc.get("key_wake_seconds", 300))   # a key press keeps it awake this long
         self.awake_until = 0.0
         self.manual_saver = False      # started by key/API: audio doesn't wake it, only a key does
+        if getattr(self, "remote", None):
+            self.remote.start()
 
     def _start_services(self) -> None:
         cfg = self.cfg
@@ -174,7 +176,7 @@ class App:
         if rc.get("enabled", True):
             from stereotv.remote import SerialRemote
             self.remote = SerialRemote(self, rc.get("port", "auto"), int(rc.get("baud", 115200)))
-            self.remote.start()
+            # started at the end of __init__ (see below): it reads app state from its own thread
 
     def shutdown(self) -> None:
         for svc in (self.identifier, self.audio, self.web, getattr(self, "remote", None)):
