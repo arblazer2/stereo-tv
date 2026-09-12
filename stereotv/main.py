@@ -220,7 +220,7 @@ class App:
         f = d.fonts["md"]
         w = f.size(label)[0] + 48
         box = pygame.Rect(0, 0, w, 48)
-        box.midbottom = (d.w // 2, d.safe.bottom - 6)
+        box.center = (d.w // 2, d.h // 2)
         pygame.draw.rect(surface, D.BLACK, box)
         pygame.draw.rect(surface, D.YELLOW, box, 2)
         d.text(label, "md", D.YELLOW, box.center, anchor="center", shadow=False)
