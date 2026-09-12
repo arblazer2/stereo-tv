@@ -59,8 +59,19 @@ class Channel:
         raise NotImplementedError
 
     # ------------------------------------------------------------ shared chrome
-    def header(self, surface: pygame.Surface, right: str = "", color=D.YELLOW) -> pygame.Rect:
+    def header(self, surface: pygame.Surface, right: str = "", color=None) -> pygame.Rect:
         d = self.d
+        color = D.YELLOW if color is None else color
+        if d.modern:
+            # minimal: small-caps label top-left, context top-right, thin rule; no bar
+            bar = pygame.Rect(0, d.safe.top, d.w, 40)
+            d.text(f"{self.number:02d}", "sm_bold", D.GREY, (d.safe.left, bar.top + 4), shadow=False)
+            left = d.text(self.name, "sm_bold", D.WHITE, (d.safe.left + 44, bar.top + 4), shadow=False)
+            room = d.safe.right - left.right - 24
+            if right and room > 80:
+                d.text(d.fit_text(right, "xs", room), "xs", D.GREY, (d.safe.right, bar.top + 8), anchor="topright", shadow=False)
+            pygame.draw.rect(surface, D.BLUE, (d.safe.left, bar.bottom - 4, d.safe.width, 2))
+            return bar
         bar = pygame.Rect(0, d.safe.top, d.w, 44)
         pygame.draw.rect(surface, D.BLUE, bar)
         pygame.draw.rect(surface, D.CYAN, bar.inflate(0, 4), 2)

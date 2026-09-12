@@ -43,6 +43,7 @@ def _font_path(cands: list[str]) -> str | None:
 
 SHADOW = True          # themes can switch drop shadows off (pixel fonts look wrong with them)
 THEME = "cable88"
+STYLE = {"layout": "cable", "radius": 0, "backdrop": False}
 
 
 class Display:
@@ -100,20 +101,83 @@ class Display:
             g[k] = v
         g["SHADOW"] = t.get("shadow", True)
         g["THEME"] = name if name in themes.THEMES else "cable88"
+        g["STYLE"] = themes.style(g["THEME"])
         self.theme = g["THEME"]
+        self.style = g["STYLE"]
         fp = t["font"] if Path(t["font"]).exists() else _font_path(FONT_CANDIDATES)
+        f2 = t.get("font2") or fp
+        f2 = f2 if Path(f2).exists() else fp
         mp = t["mono"] if Path(t["mono"]).exists() else (_font_path(MONO_CANDIDATES) or fp)
         k = float(t.get("scale", 1.0))
         self.fonts = {
             "xl": pygame.font.Font(fp, int(48 * k)),
             "lg": pygame.font.Font(fp, int(36 * k)),
             "md": pygame.font.Font(fp, int(28 * k)),
-            "sm": pygame.font.Font(fp, int(24 * k)),
+            "sm": pygame.font.Font(f2, int(24 * k)),          # body face (regular weight in modern themes)
+            "sm_bold": pygame.font.Font(fp, int(24 * k)),
+            "xs": pygame.font.Font(f2, int(20 * k)),
             "mono": pygame.font.Font(mp, int(26 * k)),
             "mono_lg": pygame.font.Font(mp, int(40 * k)),
         }
+        self._backdrops: dict = {}
         self.theme_version = getattr(self, "theme_version", 0) + 1
         log.info("theme %s", self.theme)
+
+    # ------------------------------------------------------------ style helpers
+    @property
+    def modern(self) -> bool:
+        return self.style.get("layout") == "modern"
+
+    def panel(self, surface: pygame.Surface, rect, fill, border=None, width: int = 2, radius: int | None = None) -> None:
+        """Themed rectangle: rounded in modern layouts, square in cable ones."""
+        r = self.style.get("radius", 0) if radius is None else radius
+        pygame.draw.rect(surface, fill, rect, border_radius=r)
+        if border is not None:
+            pygame.draw.rect(surface, border, rect, width, border_radius=r)
+
+    def backdrop(self, surface: pygame.Surface, cover_path: str | None, fill=None) -> None:
+        """Blurred, darkened cover art behind everything (modern themes); plain fill otherwise.
+        The blur is a 20x15 downscale then smoothscale up: cheap enough for a Pi 3, cached per cover."""
+        fill = fill if fill is not None else DARK
+        if not (self.style.get("backdrop") and cover_path):
+            surface.fill(fill)
+            return
+        bd = self._backdrops.get(cover_path)
+        if bd is None:
+            try:
+                img = pygame.image.load(cover_path).convert()
+                tiny = pygame.transform.smoothscale(img, (20, 15))
+                bd = pygame.transform.smoothscale(tiny, (self.w, self.h))
+                veil = pygame.Surface((self.w, self.h)); veil.fill((70, 70, 75))
+                bd.blit(veil, (0, 0), special_flags=pygame.BLEND_RGB_MULT)   # ~27% brightness
+            except Exception:  # noqa: BLE001
+                bd = pygame.Surface((self.w, self.h)); bd.fill(fill)
+            if len(self._backdrops) > 6:
+                self._backdrops.clear()
+            self._backdrops[cover_path] = bd
+        surface.blit(bd, (0, 0))
+
+    def card(self, surface: pygame.Surface, rect, alpha: int = 170) -> None:
+        """Translucent dark card (modern layouts) so text reads over the backdrop; no-op in cable layouts."""
+        if not self.modern:
+            return
+        r = self.style.get("radius", 0)
+        s = pygame.Surface((rect.w, rect.h), pygame.SRCALPHA)
+        pygame.draw.rect(s, (*DARK, alpha), s.get_rect(), border_radius=r)
+        surface.blit(s, rect)
+
+    def shadowed(self, surface: pygame.Surface, img: pygame.Surface, rect, radius: int = 0) -> None:
+        """Blit an image with a soft drop shadow (modern) or a hard black border (cable)."""
+        if self.modern:
+            for i, a in ((10, 60), (6, 90), (3, 120)):
+                sh = pygame.Surface((rect.w + 2 * i, rect.h + 2 * i), pygame.SRCALPHA)
+                pygame.draw.rect(sh, (0, 0, 0, a), sh.get_rect(), border_radius=radius + i)
+                surface.blit(sh, (rect.x - i, rect.y + 4 - i))
+        else:
+            pygame.draw.rect(surface, BLACK, rect.inflate(8, 8))
+        surface.blit(img, rect)
+        if not self.modern:
+            pygame.draw.rect(surface, GREY, rect.inflate(8, 8), 2)
 
     # ------------------------------------------------------------ effects
     def _make_scanlines(self) -> pygame.Surface:

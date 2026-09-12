@@ -92,7 +92,7 @@ class PersonnelChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill(D.DARK)
+        d.backdrop(surface, self.now.release.cover_path if self.now.release else None)
         bar = self.header(surface, self.now_line())
         safe = d.safe
         rel = self.now.release
@@ -107,6 +107,7 @@ class PersonnelChannel(Channel):
             d.text("NO CREDITS LISTED" if rel.release_id > 0 else "NOT IN COLLECTION", "md", D.GREY, (safe.left, bar.bottom + 90))
             return
         y = bar.bottom + 80
+        d.card(surface, pygame.Rect(safe.left - 8, y - 8, safe.width + 16, safe.bottom - y))
         for role, names in self._pages[self._page]:
             if role:
                 d.text(d.fit_text(role, "sm", 180), "sm", D.CYAN, (safe.left, y), shadow=False)

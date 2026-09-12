@@ -95,7 +95,7 @@ class _CardChannel(Channel):
         s.fill(self.bg)
         # source strip
         strip = pygame.Rect(0, 0, w, 30)
-        pygame.draw.rect(s, self.accent, strip)
+        d.panel(s, strip, self.accent, radius=8 if d.modern else 0)
         meta = self.meta_line(item)
         metaw = d.fonts["sm"].size(meta)[0] + 24 if meta else 0
         d.text(d.fit_text(item.source, "sm", w - 16 - metaw), "sm", D.BLACK, (8, strip.centery),

@@ -61,10 +61,10 @@ class TracklistChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill(D.NAVY)
+        rel = self.now.release
+        d.backdrop(surface, rel.cover_path if rel else None, fill=D.NAVY)
         bar = self.header(surface, self.now_line())
         safe = d.safe
-        rel = self.now.release
         if not rel:
             d.text("NOTHING PLAYING", "md", D.GREY, (safe.left, bar.bottom + 20))
             return
@@ -94,7 +94,7 @@ class TracklistChannel(Channel):
             for t in tracks:
                 cur = _is_cur(t, cur_side, cur_pos)
                 if cur:
-                    pygame.draw.rect(surface, D.BLUE, (x - 4, y - 2, colw - 8, ROW_H))
+                    d.panel(surface, pygame.Rect(x - 4, y - 2, colw - 8, ROW_H), D.BLUE, radius=8 if d.modern else 0)
                     pygame.draw.polygon(surface, D.AMBER, [(x + 2, y + 5), (x + 2, y + ROW_H - 9), (x + 12, y + ROW_H // 2 - 2)])
                 col = D.WHITE if cur else D.GREY
                 pos = (t["position"] or "").upper()

@@ -62,6 +62,9 @@ class NowPlayingChannel(Channel):
     # ------------------------------------------------------------
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
+        if d.modern:
+            self._draw_modern(surface)
+            return
         surface.fill(D.NAVY)
         safe = d.safe
 
@@ -79,9 +82,7 @@ class NowPlayingChannel(Channel):
         # cover art (left)
         if self._cover:
             cr = self._cover.get_rect(topleft=(safe.left, top))
-            pygame.draw.rect(surface, D.BLACK, cr.inflate(8, 8))
-            surface.blit(self._cover, cr)
-            pygame.draw.rect(surface, D.GREY, cr.inflate(8, 8), 2)
+            d.shadowed(surface, self._cover, cr)
         else:
             cr = pygame.Rect(safe.left, top, COVER, COVER)
 
@@ -152,3 +153,55 @@ class NowPlayingChannel(Channel):
             when = _t.strftime("%I:%M %p", _t.localtime(self.now.last_played_at)).lstrip("0")
             d.text(d.fit_text(f"LAST PLAYED · {lp.artist} · {lp.title} · {when}", "sm", safe.width), "sm", D.CYAN,
                    (cx, safe.bottom - 30), anchor="midtop")
+
+
+    def _draw_modern(self, surface: pygame.Surface) -> None:
+        d = self.d
+        safe = d.safe
+        rel = self.now.release
+        d.backdrop(surface, rel.cover_path if rel else None)
+        src = self.now.source.upper()
+        if self.now.status:
+            src = f"{src} · {self.now.status}"
+        bar = self.header(surface, src)
+        top = bar.bottom + 14
+        if rel is None:
+            self._draw_idle(surface, top)
+            return
+        # big art with a soft shadow, rounded
+        if self._cover:
+            cr = self._cover.get_rect(topleft=(safe.left, top + 6))
+            d.shadowed(surface, self._cover, cr, radius=8)
+        else:
+            cr = pygame.Rect(safe.left, top, COVER, COVER)
+        x = cr.right + 26
+        maxw = safe.right - x
+        y = top + 4
+        afont, astep = "lg", 40
+        lines = d.wrap(rel.artist, afont, maxw)
+        if len(lines) > 2:
+            afont, astep = "md", 32
+            lines = d.wrap(rel.artist, afont, maxw)[:3]
+        for ln in lines:
+            d.text(d.fit_text(ln, afont, maxw), afont, D.WHITE, (x, y), shadow=False); y += astep
+        y += 4
+        for ln in d.wrap(rel.title, "md", maxw)[:2]:
+            d.text(d.fit_text(ln, "md", maxw), "md", D.GREY, (x, y), shadow=False); y += 32
+        y += 10
+        meta = " · ".join(p for p in (str(rel.year or ""), rel.label.split(",")[0]) if p)
+        if meta:
+            d.text(d.fit_text(meta, "sm", maxw), "sm", D.GREY, (x, y), shadow=False); y += 30
+        if self.now.track_title:
+            # pill with the current track
+            label = " ".join(p for p in ((f"{self.now.side}{self.now.track}" if self.now.side else ""), self.now.track_title) if p)
+            label = d.fit_text(label, "sm", maxw - 24)
+            w = d.fonts["sm"].size(label)[0] + 24
+            pill = pygame.Rect(x, y + 4, w, 34)
+            d.panel(surface, pill, D.BLUE, radius=17)
+            d.text(label, "sm", D.WHITE, pill.center, anchor="center", shadow=False)
+            y += 44
+        g = rel.styles or rel.genres
+        if g:
+            d.text(d.fit_text(g, "xs", safe.width), "xs", D.GREY, (safe.left, safe.bottom - 24), shadow=False)
+        if math.sin(self._t * 3) > 0:
+            pygame.draw.circle(surface, D.GREEN, (safe.right - 10, safe.bottom - 14), 6)

@@ -66,13 +66,12 @@ class GuideChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill(D.NAVY)
         safe = d.safe
+        rel = self.now.release
+        d.backdrop(surface, (rel or self.now.last_played).cover_path if (rel or self.now.last_played) else None, fill=D.NAVY)
         # top panel: now playing + clock
         top = pygame.Rect(safe.left, safe.top, safe.width, 170)
-        pygame.draw.rect(surface, D.BLACK, top)
-        pygame.draw.rect(surface, D.CYAN, top, 2)
-        rel = self.now.release
+        d.panel(surface, top, D.BLACK if not d.modern else D.DARK, None if d.modern else D.CYAN)
         clock = time.strftime("%I:%M %p").lstrip("0")
         d.text(clock, "mono_lg", D.GREEN, (top.right - 10, top.top + 8), anchor="topright")
         d.text(f"{len(self._rows)} RECORDS", "sm", D.CYAN, (top.right - 10, top.bottom - 34), anchor="topright")
@@ -98,7 +97,7 @@ class GuideChannel(Channel):
 
         # listing header
         hdr = pygame.Rect(safe.left, top.bottom + 8, safe.width, 32)
-        pygame.draw.rect(surface, D.BLUE, hdr)
+        d.panel(surface, hdr, D.BLUE)
         d.text("YEAR", "sm", D.WHITE, (hdr.left + 8, hdr.centery), anchor="midleft", shadow=False)
         d.text("ARTIST", "sm", D.WHITE, (hdr.left + 86, hdr.centery), anchor="midleft", shadow=False)
         d.text("ALBUM", "sm", D.WHITE, (hdr.left + 292, hdr.centery), anchor="midleft", shadow=False)
@@ -117,4 +116,5 @@ class GuideChannel(Channel):
             y += ROW_H
             i += 1
         surface.set_clip(None)
-        pygame.draw.rect(surface, D.CYAN, area, 2)
+        if not d.modern:
+            pygame.draw.rect(surface, D.CYAN, area, 2)

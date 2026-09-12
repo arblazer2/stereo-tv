@@ -96,21 +96,21 @@ class LinerNotesChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill(D.DARK)
+        rel = self.now.release
+        d.backdrop(surface, rel.cover_path if rel else None)
         bar = self.header(surface, self.now_line())
         safe = d.safe
-        rel = self.now.release
         top = bar.bottom + 16
         if rel:
             img = thumb(rel.cover_path, 150)
             r = img.get_rect(topleft=(safe.left, top))
-            pygame.draw.rect(surface, D.BLACK, r.inflate(6, 6))
-            surface.blit(img, r)
+            d.shadowed(surface, img, r, radius=6)
             y = r.bottom + 10
             d.text(str(rel.year or ""), "mono", D.CYAN, (safe.left, y)); y += 30
             for ln in d.wrap(rel.label, "sm", 150)[:2]:
                 d.text(ln, "sm", D.GREY, (safe.left, y)); y += 26
         x = safe.left + 150 + 16
+        d.card(surface, pygame.Rect(x - 10, top - 8, safe.right - x + 10, safe.bottom - top - 12))
         if not self._pages:
             d.text("LOADING…" if self._loading else "NOTHING PLAYING", "md", D.GREY, (x, top))
             return

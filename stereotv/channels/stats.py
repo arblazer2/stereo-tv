@@ -97,8 +97,7 @@ class StatsChannel(Channel):
             for label, v in rows:
                 d.text(d.fit_text(str(label), "sm", labw - 8), "sm", D.WHITE, (safe.left, y), shadow=False)
                 w = int((safe.width - labw - 60) * v / top)
-                pygame.draw.rect(surface, D.BLUE, (safe.left + labw, y + 2, w, row_h - 8))
-                pygame.draw.rect(surface, D.CYAN, (safe.left + labw, y + 2, w, row_h - 8), 2)
+                d.panel(surface, pygame.Rect(safe.left + labw, y + 2, max(w, 4), row_h - 8), D.BLUE, None if d.modern else D.CYAN, radius=6 if d.modern else 0)
                 d.text(str(v), "sm", D.CYAN, (safe.left + labw + w + 8, y), shadow=False)
                 y += row_h
         elif kind == "facts":

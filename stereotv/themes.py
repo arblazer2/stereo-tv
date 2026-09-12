@@ -12,6 +12,12 @@ DEJAVU_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 DEJAVU_MONO = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf"
 VT323 = str(FONT_DIR / "VT323-Regular.ttf")
 BARLOW = str(FONT_DIR / "BarlowCondensed-SemiBold.ttf")
+POPPINS = str(FONT_DIR / "Poppins-SemiBold.ttf")
+POPPINS_REG = str(FONT_DIR / "Poppins-Regular.ttf")
+
+# "style" = layout layer. Missing keys fall back to the classic cable-box look.
+CABLE_STYLE = {"layout": "cable", "radius": 0, "backdrop": False}
+MODERN_STYLE = {"layout": "modern", "radius": 12, "backdrop": True}
 
 THEMES: dict[str, dict] = {
     # the original: late-80s cable box
@@ -78,8 +84,21 @@ THEMES: dict[str, dict] = {
                    "AMBER": (255, 120, 0), "RED": (255, 30, 60), "GREEN": (0, 255, 120)},
         "font": VT323, "mono": VT323, "scale": 1.3, "shadow": False,
     },
+    # modern: near-black, blurred-cover backdrop, rounded cards, minimal header, geometric sans
+    "moderndark": {
+        "label": "MODERN DARK",
+        "colors": {"BLACK": (8, 8, 10), "WHITE": (245, 245, 247), "GREY": (150, 150, 160), "DARK": (20, 20, 24),
+                   "NAVY": (28, 28, 34), "BLUE": (44, 44, 54), "CYAN": (120, 200, 255), "YELLOW": (255, 255, 255),
+                   "AMBER": (255, 180, 90), "RED": (255, 95, 95), "GREEN": (70, 220, 130)},
+        "font": POPPINS, "font2": POPPINS_REG, "mono": DEJAVU_MONO, "scale": 0.95, "shadow": False,
+        "style": MODERN_STYLE,
+    },
 }
 ORDER = list(THEMES)
+
+
+def style(name: str) -> dict:
+    return {**CABLE_STYLE, **get(name).get("style", {})}
 
 
 def get(name: str) -> dict:

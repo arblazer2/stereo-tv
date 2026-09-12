@@ -74,7 +74,7 @@ class CollectionChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill(D.NAVY)
+        d.backdrop(surface, self.now.release.cover_path if self.now.release else None, fill=D.NAVY)
         bar = self.header(surface, self.now_line())
         safe = d.safe
         if not self._sections:
@@ -82,6 +82,7 @@ class CollectionChannel(Channel):
             return
         title, rels = self._sections[self._sec]
         y = bar.bottom + 14
+        d.card(surface, pygame.Rect(safe.left - 8, y - 6, safe.width + 16, safe.bottom - y), alpha=120)
         d.text(d.fit_text(title, "md", safe.width), "md", D.YELLOW, (safe.left, y))
         y += 44
         # two rows of PER_ROW thumbs, page through if more
@@ -96,8 +97,11 @@ class CollectionChannel(Channel):
             yy = y + row * (THUMB + 62)
             img = thumb(r.cover_path, THUMB)
             rect = img.get_rect(topleft=(x, yy))
-            pygame.draw.rect(surface, D.BLACK, rect.inflate(4, 4))
-            surface.blit(img, rect)
+            if d.modern:
+                d.shadowed(surface, img, rect, radius=6)
+            else:
+                pygame.draw.rect(surface, D.BLACK, rect.inflate(4, 4))
+                surface.blit(img, rect)
             cap = d.fit_text(r.title, "sm", THUMB + gap - 8)
             d.text(cap, "sm", D.WHITE, (x, yy + THUMB + 2), shadow=False)
             sub = str(r.year or "") if r.artist == self.now.release.artist else d.fit_text(r.artist, "sm", THUMB + gap - 8)
