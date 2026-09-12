@@ -48,8 +48,9 @@ struct Btn { int16_t x, y, w, h; const char* label; const char* cmd; uint8_t ch;
 const Btn BTNS[] = {
   {  6, 104, 228, 92, "UP",   "KEY RIGHT", 1},     // ch=1/2 here just tags the arrow direction
   {  6, 202, 228, 92, "DOWN", "KEY LEFT",  2},
-  {  6, 298, 112, 20, "SAVER", "SAVER", 0},
-  { 122, 298, 112, 20, "SPIN",  "KEY RETURN", 0},
+  {  6, 298,  74, 20, "SAVER", "SAVER", 0},
+  {  83, 298,  74, 20, "SPIN",  "KEY RETURN", 0},
+  { 160, 298,  74, 20, "THEME", "KEY t", 0},
 };
 const int NBTN = sizeof(BTNS) / sizeof(BTNS[0]);
 
