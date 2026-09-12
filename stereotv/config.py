@@ -8,8 +8,18 @@ from typing import Any
 
 APP = "stereo-tv"
 
-CONFIG_DIR = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / APP
-DATA_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / APP
+import sys
+
+if sys.platform == "win32":
+    _cfg_base = Path(os.environ.get("APPDATA", Path.home() / "AppData/Roaming"))
+    _data_base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local"))
+elif sys.platform == "darwin":
+    _cfg_base = _data_base = Path.home() / "Library/Application Support"
+else:
+    _cfg_base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    _data_base = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
+CONFIG_DIR = Path(os.environ.get("STEREOTV_CONFIG_DIR", _cfg_base / APP))
+DATA_DIR = Path(os.environ.get("STEREOTV_DATA_DIR", _data_base / APP))
 CONFIG_FILE = CONFIG_DIR / "config.toml"
 DB_FILE = DATA_DIR / "collection.db"
 COVERS_DIR = DATA_DIR / "covers"

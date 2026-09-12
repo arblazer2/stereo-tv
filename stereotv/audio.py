@@ -72,9 +72,12 @@ class AudioStream:
         if self.device.startswith("file:"):
             self._run_file(self.device[5:])
             return
-        if not shutil.which("arecord"):
-            log.error("arecord not found; install alsa-utils. audio disabled")
+        use_sd = self.device.startswith("sd:") or (not shutil.which("arecord")) or self.device == "auto" and not shutil.which("arecord")
+        if use_sd:
+            self._run_sounddevice(self.device[3:] if self.device.startswith("sd:") else "")
             return
+        if self.device == "auto":
+            self.device = "default"
         backoff = 2.0
         last_err = None
         while not self._stop.is_set():
@@ -100,6 +103,48 @@ class AudioStream:
                 break
             time.sleep(backoff)
             backoff = min(backoff * 2, 30.0)
+
+    # ------------------------------------------------------------ portable backend: sounddevice (PortAudio)
+    def _run_sounddevice(self, which: str) -> None:
+        """Windows / macOS / any PortAudio host. `which` = device index, a name substring, or '' for default."""
+        try:
+            import sounddevice as sd  # noqa: WPS433
+        except Exception as e:  # noqa: BLE001
+            log.error("no arecord and sounddevice unavailable (%s); audio disabled", e)
+            return
+        dev = None
+        if which:
+            if which.isdigit():
+                dev = int(which)
+            else:
+                for i, d in enumerate(sd.query_devices()):
+                    if d["max_input_channels"] > 0 and which.lower() in d["name"].lower():
+                        dev = i
+                        break
+        backoff = 2.0
+        while not self._stop.is_set():
+            try:
+                info = sd.query_devices(dev, "input")
+                ch = min(self.channels, int(info["max_input_channels"])) or 1
+
+                def cb(indata, frames, t, status):
+                    if not self.alive:
+                        log.info("line-in active on %s", info["name"])
+                    self.alive = True
+                    mono = indata.mean(axis=1) if indata.ndim > 1 else indata[:, 0]
+                    self.push(mono.astype(np.float32, copy=False))
+
+                with sd.InputStream(device=dev, channels=ch, samplerate=self.rate, dtype="float32",
+                                    blocksize=self.chunk_frames, callback=cb):
+                    log.debug("sounddevice stream on %s (%d ch)", info["name"], ch)
+                    while not self._stop.is_set():
+                        time.sleep(0.25)
+                    return
+            except Exception as e:  # noqa: BLE001
+                self.alive = False
+                log.warning("sounddevice: %s (retrying in %.0fs)", str(e)[:90], backoff)
+                time.sleep(backoff)
+                backoff = min(backoff * 2, 30.0)
 
     # ------------------------------------------------------------ dev source: loop a file
     def _run_file(self, path: str, gap_seconds: float = 4.0) -> None:
@@ -214,8 +259,19 @@ def load_audio_file(path: Path, rate: int) -> np.ndarray:
     return pcm
 
 
-def list_devices() -> str:
-    """`arecord -l` output for the config helper."""
-    if not shutil.which("arecord"):
-        return "arecord not installed"
-    return subprocess.run(["arecord", "-l"], capture_output=True, text=True).stdout
+def list_devices() -> list[tuple[str, str]]:
+    """[(device string, description)] — ALSA via arecord where available, else PortAudio via sounddevice."""
+    devs: list[tuple[str, str]] = []
+    if shutil.which("arecord"):
+        out = subprocess.run(["arecord", "-l"], capture_output=True, text=True).stdout
+        for m in re.finditer(r"card (\d+): (\S+) \[(.*?)\], device (\d+): (.*?) \[", out):
+            devs.append((f"plughw:CARD={m.group(2)},DEV={m.group(4)}", f"{m.group(3)} ({m.group(5)})"))
+    if not devs:
+        try:
+            import sounddevice as sd  # noqa: WPS433
+            for i, d in enumerate(sd.query_devices()):
+                if d["max_input_channels"] > 0:
+                    devs.append((f"sd:{i}", f"{d['name']} ({d['max_input_channels']} ch)"))
+        except Exception:  # noqa: BLE001
+            pass
+    return devs

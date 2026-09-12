@@ -122,9 +122,9 @@ class Display:
         g["STYLE"] = themes.style(g["THEME"])
         self.theme = g["THEME"]
         self.style = g["STYLE"]
-        fp = t["font"] if Path(t["font"]).exists() else _font_path(FONT_CANDIDATES)
+        fp = t["font"] if Path(t["font"]).exists() else _font_path(FONT_CANDIDATES)   # None -> pygame default
         f2 = t.get("font2") or fp
-        f2 = f2 if Path(f2).exists() else fp
+        f2 = f2 if (f2 and Path(f2).exists()) else fp
         mp = t["mono"] if Path(t["mono"]).exists() else (_font_path(MONO_CANDIDATES) or fp)
         k = float(t.get("scale", 1.0)) * float(getattr(self, "font_scale", 1.0) or 1.0)
         k2 = k * float(t.get("style", {}).get("body_scale", 1.0))   # body face scaled separately

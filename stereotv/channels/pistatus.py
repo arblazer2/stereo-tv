@@ -49,11 +49,11 @@ def collect(audio=None, now=None, fps: float = 0.0) -> dict:
     s["throttled"] = flags
     s["throttle_now"] = [n for b, n in THROTTLE_BITS.items() if b < 16 and flags & (1 << b)]
     s["throttle_past"] = [n for b, n in THROTTLE_BITS.items() if b >= 16 and flags & (1 << b)]
-    s["load"] = os.getloadavg()
+    s["load"] = os.getloadavg() if hasattr(os, "getloadavg") else (0.0, 0.0, 0.0)
     mem = dict(re.findall(r"(\w+):\s+(\d+)", _read("/proc/meminfo")))
     s["mem_used_mb"] = (int(mem.get("MemTotal", 0)) - int(mem.get("MemAvailable", 0))) // 1024
     s["mem_total_mb"] = int(mem.get("MemTotal", 0)) // 1024
-    du = shutil.disk_usage("/")
+    du = shutil.disk_usage(os.path.abspath(os.sep))
     s["disk_used_gb"], s["disk_total_gb"] = du.used / 1e9, du.total / 1e9
     up = float(_read("/proc/uptime").split()[0] or 0)
     s["uptime"] = f"{int(up // 86400)}d {int(up % 86400 // 3600)}h {int(up % 3600 // 60)}m"
@@ -63,8 +63,12 @@ def collect(audio=None, now=None, fps: float = 0.0) -> dict:
         parts = ln.split()
         if len(parts) > 3:
             s["wifi"] = f"{parts[0].rstrip(':')} {float(parts[3]):.0f} dBm  (link {float(parts[2]):.0f}%)"
-    ip = subprocess.run(["hostname", "-I"], capture_output=True, text=True).stdout.split()
-    s["ip"] = ip[0] if ip else "?"
+    try:
+        import socket
+        sk = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); sk.connect(("8.8.8.8", 80))
+        s["ip"] = sk.getsockname()[0]; sk.close()
+    except OSError:
+        s["ip"] = "?"
     s["fps"] = fps
     if audio is not None:
         a = audio.stats()

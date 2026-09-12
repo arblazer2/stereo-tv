@@ -81,6 +81,21 @@ A nightly timer keeps everything fresh and adds original release dates
 If the screen stays black on a Pi with the KMS driver, add
 `video=HDMI-A-1:640x480@60D` to `/boot/firmware/cmdline.txt` — see `docs/PI-NOTES.md`.
 
+## Running on a PC or Mac
+
+No Pi required to try it, or to run it for real off a desktop's line-in:
+
+```bash
+git clone https://github.com/arblazer2/stereo-tv.git && cd stereo-tv
+python -m venv .venv && .venv/bin/pip install -r requirements.txt     # Windows: .venv\Scripts\pip
+.venv/bin/python -m stereotv.setup      # lists your input devices via PortAudio
+.venv/bin/python -m stereotv --windowed # 640x480 window; add "wide" in setup for 854x480
+```
+
+Config lives in `%APPDATA%\stereo-tv` on Windows, `~/Library/Application Support/stereo-tv` on macOS.
+For a demo without any audio hardware set `[audio] device = "file:/path/to/song.wav"` — the identifier and
+visualizer run on the file as if it were the line-in. The CYD remote works on a PC too (it's just a COM port).
+
 ## Using it
 
 - Keyboard: **←/→ or 1–9, 0** change channel · **Space** screensaver (again = next) ·

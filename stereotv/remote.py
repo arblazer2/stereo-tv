@@ -27,6 +27,13 @@ KEYS = {"SPACE": pygame.K_SPACE, "RETURN": pygame.K_RETURN, "ENTER": pygame.K_RE
 def find_port(pattern: str = "auto") -> str | None:
     if pattern != "auto":
         return pattern
+    try:
+        from serial.tools import list_ports  # noqa: WPS433
+        for p in list_ports.comports():
+            if (p.vid, p.pid) == (0x1A86, 0x7523) or "CH340" in (p.description or ""):   # the CYD's CH340
+                return p.device
+    except Exception:  # noqa: BLE001
+        pass
     for pat in ("/dev/serial/by-id/*CH340*", "/dev/serial/by-id/*CP210*", "/dev/serial/by-id/*", "/dev/ttyUSB*", "/dev/ttyACM*"):
         hits = sorted(glob.glob(pat))
         if hits:

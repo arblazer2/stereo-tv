@@ -43,6 +43,7 @@ release_id = 0
 enabled = true
 # ALSA capture device. `arecord -l` lists cards; the Behringer UCA202 shows up as "CODEC".
 device = "plughw:CARD=CODEC,DEV=0"
+# PC/Mac (no ALSA): "auto" = default input via PortAudio, "sd:2" = device index, "sd:USB Audio" = name match.
 # dev/test: loop an audio file instead of capturing (WAV natively, others need ffmpeg):
 # device = "file:/home/you/test.wav"
 rate = 44100

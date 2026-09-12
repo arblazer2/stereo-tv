@@ -8,8 +8,16 @@ from __future__ import annotations
 from pathlib import Path
 
 FONT_DIR = Path(__file__).resolve().parent.parent / "fonts"
-DEJAVU_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-DEJAVU_MONO = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf"
+def _first(*paths: str) -> str:
+    for p in paths:
+        if Path(p).exists():
+            return p
+    return paths[-1]
+
+
+# system DejaVu on the Pi, bundled copy everywhere else
+DEJAVU_BOLD = _first("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", str(FONT_DIR / "DejaVuSans-Bold.ttf"))
+DEJAVU_MONO = _first("/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", str(FONT_DIR / "DejaVuSansMono-Bold.ttf"))
 VT323 = str(FONT_DIR / "VT323-Regular.ttf")
 BARLOW = str(FONT_DIR / "BarlowCondensed-SemiBold.ttf")
 POPPINS = str(FONT_DIR / "Poppins-SemiBold.ttf")

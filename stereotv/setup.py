@@ -70,16 +70,8 @@ def geocode(query: str) -> list[dict]:
 
 
 def list_capture_devices() -> list[tuple[str, str]]:
-    """[(alsa device string, description)] from `arecord -l`."""
-    try:
-        out = subprocess.run(["arecord", "-l"], capture_output=True, text=True, timeout=5).stdout
-    except (OSError, subprocess.SubprocessError):
-        return []
-    devs = []
-    for m in re.finditer(r"card (\d+): (\S+) \[(.*?)\], device (\d+): (.*?) \[", out):
-        card_id, desc, devnum, devname = m.group(2), m.group(3), m.group(4), m.group(5)
-        devs.append((f"plughw:CARD={card_id},DEV={devnum}", f"{desc} ({devname})"))
-    return devs
+    from stereotv.audio import list_devices
+    return list_devices()
 
 
 def toml_str(v: str) -> str:
@@ -204,12 +196,12 @@ def main(argv: list[str] | None = None) -> int:
         pick = ask("Which one (number, or type an ALSA device)", "1")
         v["audio"] = devs[int(pick) - 1][0] if pick.isdigit() and 0 < int(pick) <= len(devs) else pick
     else:
-        v["audio"] = devs[0][0] if devs else "plughw:CARD=CODEC,DEV=0"
+        v["audio"] = devs[0][0] if devs else "auto"
         if not devs:
             print("  no capture device found now; using the default (change [audio].device later)")
     v["channels"] = a.channels or (int(ask("Channels (2 for a line-in interface, 1 for a mic/dongle)", "2")) if interactive else 2)
     v["mixer"] = None
-    if v["channels"] == 1:
+    if v["channels"] == 1 and sys.platform.startswith("linux"):
         # a mic-input dongle fed with line level needs its gain pulled down; start sensible
         g = ask("Capture gain for the mic input (%; ~40 for line level into a mic jack)", "40") if interactive else "40"
         v["mixer"] = ("Mic", f"{g}%")
