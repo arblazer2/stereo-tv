@@ -10,7 +10,7 @@ import pygame
 
 log = logging.getLogger("stereotv.display")
 
-# Palette: 80s cable box
+# Palette: 80s cable box (the "cable88" theme). themes.apply() rewrites these at runtime.
 BLACK = (0, 0, 0)
 WHITE = (235, 235, 235)
 GREY = (140, 140, 140)
@@ -41,11 +41,16 @@ def _font_path(cands: list[str]) -> str | None:
     return None
 
 
+SHADOW = True          # themes can switch drop shadows off (pixel fonts look wrong with them)
+THEME = "cable88"
+
+
 class Display:
     def __init__(self, width: int = 640, height: int = 480, fps: int = 30,
                  fullscreen: bool = True, scanlines: bool = True, sdl_debug: bool = False,
-                 drift: bool = False, drift_px: int = 2, drift_seconds: float = 180.0):
+                 drift: bool = False, drift_px: int = 2, drift_seconds: float = 180.0, theme: str = "cable88"):
         self.w, self.h = width, height
+        self.theme = theme
         self.fps = fps
         self.scanlines_on = scanlines
         # CRT burn-in guard: shift the whole picture by up to ±drift_px every drift_seconds
@@ -80,18 +85,35 @@ class Display:
         self.safe = pygame.Rect(int(width * 0.06), int(height * 0.06),
                                 int(width * 0.88), int(height * 0.88))
 
-        fp = _font_path(FONT_CANDIDATES)
-        mp = _font_path(MONO_CANDIDATES) or fp
-        self.fonts = {
-            "xl": pygame.font.Font(fp, 48),
-            "lg": pygame.font.Font(fp, 36),
-            "md": pygame.font.Font(fp, 28),
-            "sm": pygame.font.Font(fp, 24),
-            "mono": pygame.font.Font(mp, 26),
-            "mono_lg": pygame.font.Font(mp, 40),
-        }
+        self.fonts: dict[str, pygame.font.Font] = {}
+        self.apply_theme(theme)
         self._scan = self._make_scanlines()
         self._rng = np.random.default_rng()
+
+    # ------------------------------------------------------------ themes
+    def apply_theme(self, name: str) -> None:
+        """Swap palette + fonts. Colours are module globals so every channel sees them."""
+        from stereotv import themes
+        t = themes.get(name)
+        g = globals()
+        for k, v in t["colors"].items():
+            g[k] = v
+        g["SHADOW"] = t.get("shadow", True)
+        g["THEME"] = name if name in themes.THEMES else "cable88"
+        self.theme = g["THEME"]
+        fp = t["font"] if Path(t["font"]).exists() else _font_path(FONT_CANDIDATES)
+        mp = t["mono"] if Path(t["mono"]).exists() else (_font_path(MONO_CANDIDATES) or fp)
+        k = float(t.get("scale", 1.0))
+        self.fonts = {
+            "xl": pygame.font.Font(fp, int(48 * k)),
+            "lg": pygame.font.Font(fp, int(36 * k)),
+            "md": pygame.font.Font(fp, int(28 * k)),
+            "sm": pygame.font.Font(fp, int(24 * k)),
+            "mono": pygame.font.Font(mp, int(26 * k)),
+            "mono_lg": pygame.font.Font(mp, int(40 * k)),
+        }
+        self.theme_version = getattr(self, "theme_version", 0) + 1
+        log.info("theme %s", self.theme)
 
     # ------------------------------------------------------------ effects
     def _make_scanlines(self) -> pygame.Surface:
@@ -116,7 +138,7 @@ class Display:
              shadow: bool = True, target: pygame.Surface | None = None) -> pygame.Rect:
         target = target or self.surface
         f = self.fonts[font]
-        if shadow:
+        if shadow and SHADOW:
             sh = f.render(s, True, BLACK)
             r = sh.get_rect(**{anchor: (pos[0] + 2, pos[1] + 2)})
             target.blit(sh, r)

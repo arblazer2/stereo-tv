@@ -52,6 +52,11 @@ class ChannelControl:
     def fps(self) -> float:
         return self.app.d.clock.get_fps()
 
+    def theme(self, name: str | None = None) -> str:
+        if name:
+            self.app.theme_request = name
+        return self.app.d.theme
+
     def request(self, n: int) -> None:
         self.pending = n
 
@@ -79,7 +84,7 @@ class App:
         self.d = D.Display(dc["width"], dc["height"], dc["fps"], dc["fullscreen"], dc["scanlines"],
                            sdl_debug=bool(dc.get("sdl_debug", False)),
                            drift=bool(dc.get("drift", False)), drift_px=int(dc.get("drift_px", 2)),
-                           drift_seconds=float(dc.get("drift_seconds", 180)))
+                           drift_seconds=float(dc.get("drift_seconds", 180)), theme=dc.get("theme", "cable88"))
         self.now = NowPlaying()
         self.now.load_last_played(config.DATA_DIR / "last_played.json")
         if self.now.last_played:
@@ -122,6 +127,7 @@ class App:
         self.loud_since: float | None = None
         self.saving = False
         self.saver_request = False
+        self.theme_request: str | None = None
         self.key_wake_s = float(sc.get("key_wake_seconds", 300))   # a key press keeps it awake this long
         self.awake_until = 0.0
         self.manual_saver = False      # started by key/API: audio doesn't wake it, only a key does
@@ -190,6 +196,22 @@ class App:
         log.info("now playing (hardcoded): %s - %s (%s)", rel.artist, rel.title, rel.year)
 
     # ------------------------------------------------------------
+    def set_theme(self, name: str) -> None:
+        self.d.apply_theme(name)
+        # channels cache rendered surfaces; bump NowPlaying's version so they rebuild
+        self.now.version += 1
+        for ch in self.channels.values():
+            for attr in ("_card_key", "_page_key"):
+                if hasattr(ch, attr):
+                    setattr(ch, attr, None)
+            if hasattr(ch, "_cache") and isinstance(getattr(ch, "_cache"), dict):
+                ch._cache.clear()
+            if hasattr(ch, "_tick_surf"):
+                ch._tick_surf = None
+                ch._loaded = 0.0
+        self.snow_left = SNOW_TIME
+        self.osd_left = OSD_TIME
+
     def wake(self, manual: bool = False) -> None:
         """Leave the screensaver. manual=True (key/dial/API) also holds it off for a while."""
         now = time.monotonic()
@@ -264,6 +286,9 @@ class App:
                     self.running = False
                 elif e.key == pygame.K_s:
                     self.d.scanlines_on = not self.d.scanlines_on
+                elif e.key == pygame.K_t:
+                    from stereotv import themes
+                    self.set_theme(themes.next_name(self.d.theme))
                 elif e.key == pygame.K_SPACE:
                     # Space: start the screensaver; again while showing = next saver
                     self.manual_saver = True
@@ -271,6 +296,9 @@ class App:
         if any(e.type == pygame.KEYDOWN and e.key != pygame.K_SPACE for e in events):
             self.wake(manual=True)
         delta, absolute = self.dial.poll(events)
+        if self.theme_request:
+            name, self.theme_request = self.theme_request, None
+            self.set_theme(name)
         if self.channel_ctl and self.channel_ctl.pending is not None:
             absolute, self.channel_ctl.pending = self.channel_ctl.pending, None
         if absolute is not None:

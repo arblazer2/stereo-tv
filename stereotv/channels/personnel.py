@@ -92,7 +92,7 @@ class PersonnelChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill((14, 24, 30))
+        surface.fill(D.DARK)
         bar = self.header(surface, self.now_line())
         safe = d.safe
         rel = self.now.release

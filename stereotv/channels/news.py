@@ -25,9 +25,17 @@ def _ago(ts: float) -> str:
 
 class _CardChannel(Channel):
     """Shared: one item per page, wrapped title + summary, source strip, page dots."""
-    accent = D.YELLOW
-    bg = D.NAVY
+    accent_name = "YELLOW"
+    bg_name = "NAVY"
     empty_text = "NOTHING TO SHOW"
+
+    @property
+    def accent(self):
+        return getattr(D, self.accent_name)
+
+    @property
+    def bg(self):
+        return getattr(D, self.bg_name)
 
     def __init__(self, display, now):
         super().__init__(display, now)
@@ -111,7 +119,7 @@ class _CardChannel(Channel):
 class MusicNewsChannel(_CardChannel):
     number = 13
     name = "MUSIC NEWS"
-    accent = D.YELLOW
+    accent_name = "YELLOW"
 
     def __init__(self, display, now, feeds=None):
         super().__init__(display, now)
@@ -125,8 +133,8 @@ class MusicNewsChannel(_CardChannel):
 class ThisDayChannel(_CardChannel):
     number = 14
     name = "THIS DAY IN MUSIC"
-    accent = D.AMBER
-    bg = (30, 16, 40)
+    accent_name = "AMBER"
+    bg_name = "DARK"
     empty_text = "QUIET DAY IN MUSIC HISTORY"
 
     def __init__(self, display, now):

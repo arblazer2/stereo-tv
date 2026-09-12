@@ -31,6 +31,7 @@ DEFAULTS: dict[str, Any] = {
         "fps": 30,
         "scanlines": True,
         "fullscreen": True,
+        "theme": "cable88",
     },
     "dial": {"mode": "keyboard"},
     "now_playing": {"release_id": 0},

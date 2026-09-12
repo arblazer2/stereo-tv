@@ -103,7 +103,7 @@ class PiStatusChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill((8, 12, 8))
+        surface.fill(D.DARK)
         bar = self.header(surface, f"stereo-tv @ {self.s.get('ip', '…')}", color=D.GREEN)
         safe = d.safe
         s = self.s

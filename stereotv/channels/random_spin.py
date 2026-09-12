@@ -86,7 +86,7 @@ class RandomSpinChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill((20, 10, 40))
+        surface.fill(D.DARK)
         bar = self.header(surface, "ENTER = SPIN · P = PLAY IT", color=D.CYAN)
         safe = d.safe
         rel = self.shown

@@ -49,7 +49,7 @@ class GuideChannel(Channel):
         s = self._cache.get(r["release_id"])
         if s is None:
             s = pygame.Surface((width, ROW_H))
-            s.fill((22, 36, 110) if i % 2 else (12, 24, 72))
+            s.fill(D.NAVY if i % 2 else D.DARK)
             f = self.d.fonts["sm"]
             yr = f.render(str(r["year"] or "----"), True, D.CYAN)
             s.blit(yr, (8, (ROW_H - yr.get_height()) // 2))

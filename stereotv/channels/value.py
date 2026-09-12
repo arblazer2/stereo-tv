@@ -65,7 +65,7 @@ class ValueChannel(Channel):
             parts.append((f" {_fmt(low)} {arrow}    ", col))
         w = sum(f.size(t)[0] for t, _ in parts)
         s = pygame.Surface((w, 30))
-        s.fill((8, 12, 30))
+        s.fill(D.DARK)
         x = 0
         for t, col in parts:
             img = f.render(t, True, col)
@@ -86,7 +86,7 @@ class ValueChannel(Channel):
 
     def draw(self, surface: pygame.Surface) -> None:
         d = self.d
-        surface.fill((8, 12, 30))
+        surface.fill(D.DARK)
         bar = self.header(surface, time.strftime("%a %b %d · %I:%M %p").upper().replace(" 0", " "), color=D.CYAN)
         safe = d.safe
         if not self.history:
@@ -135,7 +135,7 @@ class ValueChannel(Channel):
             yy += 26
         # ticker crawl
         band = pygame.Rect(0, safe.bottom - 36, d.w, 34)
-        pygame.draw.rect(surface, (8, 12, 30), band)
+        pygame.draw.rect(surface, D.DARK, band)
         pygame.draw.rect(surface, (40, 60, 120), (0, band.top, d.w, 2))
         if self._tick_surf:
             tw = self._tick_surf.get_width()

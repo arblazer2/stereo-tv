@@ -8,6 +8,7 @@ Stdlib only (ThreadingHTTPServer). Runs in a background thread on the LAN.
     POST /api/clear                             -> resume auto-ID
     GET  /api/channel / POST {"channel": N}     -> read / change the channel remotely
     GET  /api/audio         -> line-in level (rms, dB, peak) for gain tuning
+    GET  /api/theme / POST ?theme=name -> read / switch the theme (cable88, prevue, teletext, phosphor)
     POST /api/screensaver {"mode": "flying"|"weather"|"bounce"|null} -> start the screensaver now
     GET  /covers/<id>.jpg   -> cached cover art
 """
@@ -46,6 +47,7 @@ button{font-size:15px;padding:8px 12px;border-radius:6px;border:0;background:#ff
 </style></head><body>
 <h1>STEREO-TV &middot; manual override</h1>
 <div id=now><img id=nimg><div class=t><b id=nt>&nbsp;</b><small id=ns></small></div><button onclick="clr()">Auto</button></div>
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><small style="color:#9cf">THEME</small><select id=theme onchange="setTheme(this.value)" style="flex:1;font-size:15px;padding:6px;border-radius:6px;background:#000;color:#fff;border:1px solid #5adcf0"></select></div>
 <input id=q placeholder="Search artist or album" autofocus autocomplete=off>
 <ul id=r></ul>
 <script>
@@ -64,7 +66,9 @@ async function search(){const q=$('#q').value.trim();const j=await (await fetch(
 function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 async function play(id){await fetch('/api/play',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({release_id:id})});now();window.scrollTo(0,0)}
 async function clr(){await fetch('/api/clear',{method:'POST'});now()}
-now();search();setInterval(now,5000);
+async function themes(){const j=await (await fetch('/api/theme')).json();const s=$('#theme');s.innerHTML=Object.entries(j.themes).map(([k,v])=>`<option value="${k}"${k===j.theme?' selected':''}>${v}</option>`).join('')}
+async function setTheme(n){await fetch('/api/theme?theme='+encodeURIComponent(n),{method:'POST'})}
+now();search();themes();setInterval(now,5000);
 </script></body></html>"""
 
 
@@ -92,6 +96,10 @@ def make_handler(now: NowPlaying, override_minutes: float, channel_ctl=None, aud
                 self.wfile.write(body)
             elif u.path == "/api/now":
                 self._json(now.as_dict())
+            elif u.path == "/api/theme":
+                from stereotv import themes
+                self._json({"theme": channel_ctl.theme() if channel_ctl else None,
+                            "themes": {k: v["label"] for k, v in themes.THEMES.items()}})
             elif u.path == "/api/audio":
                 self._json(audio.stats() if audio else {"alive": False, "device": None})
             elif u.path == "/api/channel":
@@ -152,6 +160,14 @@ def make_handler(now: NowPlaying, override_minutes: float, channel_ctl=None, aud
             elif u.path == "/api/clear":
                 now.clear_override()
                 self._json(now.as_dict())
+            elif u.path == "/api/theme":
+                from stereotv import themes
+                name = str(body.get("theme") or body.get("name") or "")
+                if name not in themes.THEMES or not channel_ctl:
+                    self._json({"error": "unknown theme", "themes": list(themes.THEMES)}, HTTPStatus.BAD_REQUEST)
+                    return
+                channel_ctl.theme(name)
+                self._json({"theme": name})
             elif u.path == "/api/screensaver":
                 mode = body.get("mode")
                 ok = channel_ctl.saver(mode) if channel_ctl else False

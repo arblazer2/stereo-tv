@@ -63,7 +63,7 @@ If the screen stays black on a Pi with the KMS driver, add
 ## Using it
 
 - Keyboard: **←/→ or 1–9, 0** change channel · **Space** screensaver (again = next) ·
-  **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it.
+  **T** cycle themes (Cable '88, Prevue, Teletext, Phosphor) · **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it.
 - Phone: `http://<pi>:8080/` — search, tap a record to override auto-ID for 30 min.
 - API: `GET /api/now`, `GET /api/audio` (input level, for gain tuning),
   `POST /api/channel?channel=N`, `POST /api/screensaver?mode=wall`.
