@@ -14,6 +14,7 @@ VT323 = str(FONT_DIR / "VT323-Regular.ttf")
 BARLOW = str(FONT_DIR / "BarlowCondensed-SemiBold.ttf")
 POPPINS = str(FONT_DIR / "Poppins-SemiBold.ttf")
 POPPINS_REG = str(FONT_DIR / "Poppins-Regular.ttf")
+PRESSSTART = str(FONT_DIR / "PressStart2P-Regular.ttf")
 
 # "style" = layout layer. Missing keys fall back to the classic cable-box look.
 CABLE_STYLE = {"layout": "cable", "radius": 0, "backdrop": False}
@@ -76,13 +77,14 @@ THEMES: dict[str, dict] = {
                    "AMBER": (255, 180, 50), "RED": (255, 90, 90), "GREEN": (140, 255, 160)},
         "font": DEJAVU_BOLD, "mono": DEJAVU_MONO, "scale": 1.0, "shadow": True,
     },
-    # arcade cabinet marquee: black + neon primaries, pixel type
+    # arcade cabinet marquee: neon magenta/cyan/yellow on black, chunky 8-bit type with a glow
     "arcade": {
         "label": "ARCADE",
-        "colors": {"BLACK": (0, 0, 0), "WHITE": (255, 255, 255), "GREY": (150, 150, 160), "DARK": (12, 0, 12),
-                   "NAVY": (30, 0, 40), "BLUE": (0, 90, 255), "CYAN": (0, 220, 255), "YELLOW": (255, 230, 0),
-                   "AMBER": (255, 120, 0), "RED": (255, 30, 60), "GREEN": (0, 255, 120)},
-        "font": VT323, "mono": VT323, "scale": 1.3, "shadow": False,
+        "colors": {"BLACK": (0, 0, 0), "WHITE": (255, 255, 255), "GREY": (140, 130, 170), "DARK": (10, 0, 22),
+                   "NAVY": (26, 0, 48), "BLUE": (200, 0, 160), "CYAN": (0, 255, 255), "YELLOW": (255, 240, 0),
+                   "AMBER": (255, 140, 0), "RED": (255, 40, 90), "GREEN": (60, 255, 120)},
+        "font": PRESSSTART, "font2": VT323, "mono": VT323, "scale": 0.72, "shadow": False,
+        "style": {"layout": "cable", "radius": 0, "backdrop": False, "glow": True, "body_scale": 1.75},
     },
     # modern: near-black, blurred-cover backdrop, rounded cards, minimal header, geometric sans
     "moderndark": {

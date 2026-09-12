@@ -127,15 +127,16 @@ class Display:
         f2 = f2 if Path(f2).exists() else fp
         mp = t["mono"] if Path(t["mono"]).exists() else (_font_path(MONO_CANDIDATES) or fp)
         k = float(t.get("scale", 1.0)) * float(getattr(self, "font_scale", 1.0) or 1.0)
+        k2 = k * float(t.get("style", {}).get("body_scale", 1.0))   # body face scaled separately
         self.fonts = {
             "xl": pygame.font.Font(fp, int(48 * k)),
             "lg": pygame.font.Font(fp, int(36 * k)),
             "md": pygame.font.Font(fp, int(28 * k)),
-            "sm": pygame.font.Font(f2, int(24 * k)),          # body face (regular weight in modern themes)
+            "sm": pygame.font.Font(f2, int(24 * k2)),         # body face (regular weight in modern themes)
             "sm_bold": pygame.font.Font(fp, int(24 * k)),
-            "xs": pygame.font.Font(f2, int(20 * k)),
-            "mono": pygame.font.Font(mp, int(26 * k)),
-            "mono_lg": pygame.font.Font(mp, int(40 * k)),
+            "xs": pygame.font.Font(f2, int(20 * k2)),
+            "mono": pygame.font.Font(mp, int(26 * k2)),
+            "mono_lg": pygame.font.Font(mp, int(40 * k2)),
         }
         self._backdrops: dict = {}
         self.theme_version = getattr(self, "theme_version", 0) + 1
@@ -231,6 +232,12 @@ class Display:
             target.blit(sh, r)
         img = f.render(s, True, color)
         r = img.get_rect(**{anchor: pos})
+        if STYLE.get("glow") and font in ("xl", "lg", "md", "mono_lg", "sm_bold"):
+            # neon: the same text at half alpha, offset around, before the crisp pass
+            glow = img.copy()
+            glow.set_alpha(90)
+            for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2), (-1, -1), (1, 1), (-1, 1), (1, -1)):
+                target.blit(glow, (r.x + dx, r.y + dy))
         target.blit(img, r)
         return r
 
