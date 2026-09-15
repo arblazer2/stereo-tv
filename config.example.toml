@@ -25,7 +25,7 @@ font_scale = 1.0    # >1 for a big monitor viewed from across the room
 fps = 30
 scanlines = true
 fullscreen = true
-theme = "cable88"   # cable88 | prevue | teletext | phosphor | vaporwave | amber | weather95 | arcade | moderndark | modernlight  (T cycles)
+theme = "cable88"   # cable88 | prevue | teletext | phosphor | vaporwave | amber | weather95 | arcade | moderndark | modernlight | c64  (T cycles)
 sdl_debug = false   # true = SDL verbose log to journal
 drift = false       # CRT burn-in guard: nudge the whole picture a few px every few minutes
 drift_px = 2

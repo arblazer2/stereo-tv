@@ -128,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--weather", choices=["open-meteo", "homeassistant"])
     ap.add_argument("--ha-url"); ap.add_argument("--ha-token"); ap.add_argument("--ha-entity", default="weather.home")
     ap.add_argument("--zoom", type=int, help="radar zoom: 7 state, 8 region, 9 county")
-    ap.add_argument("--theme", choices=["cable88", "prevue", "teletext", "phosphor", "vaporwave", "amber", "weather95", "arcade", "moderndark", "modernlight"])
+    ap.add_argument("--theme", choices=["cable88", "prevue", "teletext", "phosphor", "vaporwave", "amber", "weather95", "arcade", "moderndark", "modernlight", "c64"])
     ap.add_argument("--display", choices=["crt", "wide"], help="crt = 4:3 640x480 canvas; wide = 854x480 canvas for 16:9 monitors")
     ap.add_argument("--yes", action="store_true", help="no prompts; fail on anything missing")
     ap.add_argument("--no-sync", action="store_true")
@@ -217,7 +217,7 @@ def main(argv: list[str] | None = None) -> int:
     print("\nDisplay")
     disp = a.display or (ask("Display: crt (4:3, CRT or old monitor) or wide (16:9 monitor/TV)", "crt") if interactive else "crt")
     v["width"], v["height"] = (854, 480) if disp == "wide" else (640, 480)
-    v["theme"] = a.theme or (ask("Look: cable88 (late-80s cable), prevue, teletext, phosphor, vaporwave, amber, weather95, arcade, moderndark, modernlight",
+    v["theme"] = a.theme or (ask("Look: cable88 (late-80s cable), prevue, teletext, phosphor, vaporwave, amber, weather95, arcade, moderndark, modernlight, c64",
                                  "moderndark" if disp == "wide" else "cable88") if interactive else "cable88")
     path = write_config(v)
     print(f"\n✓ wrote {path}")

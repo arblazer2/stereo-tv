@@ -134,6 +134,25 @@ class NowPlayingChannel(Channel):
         d = self.d
         safe = d.safe
         cx = d.w // 2
+        if D.THEME == "c64":
+            # the boot screen
+            x, y = safe.left + 8, top + 10
+            lines = ["**** COMMODORE 64 BASIC V2 ****", "", " 64K RAM SYSTEM  38911 BASIC BYTES FREE", "", "READY.",
+                     "LOAD \"STEREO-TV\",8,1", "", "READY."]
+            for ln in lines:
+                d.text(ln, "sm", D.CYAN, (x, y), shadow=False); y += 26
+            st = self.now.status or ""
+            hint = {"NO LINE-IN": "?DEVICE NOT PRESENT  ERROR", "SILENCE": "WAITING FOR NEEDLE DROP",
+                    "NO RECOGNIZER": "?RECOGNIZER NOT FOUND  ERROR"}.get(st, st)
+            if hint:
+                d.text(hint, "sm", D.CYAN, (x, y), shadow=False); y += 26
+            lp = self.now.last_played
+            if lp:
+                when = _t.strftime("%I:%M %p", _t.localtime(self.now.last_played_at)).lstrip("0")
+                d.text(d.fit_text(f"LAST: {lp.artist} - {lp.title} ({when})".upper(), "sm", safe.width - 16), "sm", D.CYAN, (x, y), shadow=False); y += 26
+            if int(_t.time() * 2) % 2:
+                pygame.draw.rect(surface, D.CYAN, (x, y + 4, 16, 22))
+            return
         # a resting tonearm + platter, drawn simply
         pygame.draw.circle(surface, (25, 25, 35), (cx, top + 120), 96)
         pygame.draw.circle(surface, (60, 60, 75), (cx, top + 120), 96, 3)

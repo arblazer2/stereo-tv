@@ -265,7 +265,18 @@ class Display:
         return lines
 
     # ------------------------------------------------------------ frame
+    def frame(self, surface: pygame.Surface) -> None:
+        """Bezel around the picture (C64 theme): a beige case edge with a dark inner line."""
+        fr = self.style.get("frame")
+        if not fr:
+            return
+        w = int(fr.get("width", 10))
+        pygame.draw.rect(surface, fr["outer"], (0, 0, self.w, self.h), w)
+        pygame.draw.rect(surface, fr["inner"], (w, w, self.w - 2 * w, self.h - 2 * w), 2)
+
     def flip(self) -> float:
+        if self.style.get("frame"):
+            self.frame(self.surface)
         if self.scanlines_on:
             self.surface.blit(self._scan, (0, 0), special_flags=pygame.BLEND_RGB_SUB)
         if self.surface is not self.screen:

@@ -73,7 +73,7 @@ class GuideChannel(Channel):
         top = pygame.Rect(safe.left, safe.top, safe.width, 170)
         d.panel(surface, top, D.BLACK if not d.modern else D.DARK, None if d.modern else D.CYAN)
         clock = time.strftime("%I:%M %p").lstrip("0")
-        d.text(clock, "mono_lg", D.GREEN, (top.right - 10, top.top + 8), anchor="topright")
+        clock_r = d.text(clock, "mono_lg", D.GREEN, (top.right - 10, top.top + 8), anchor="topright")
         d.text(f"{len(self._rows)} RECORDS", "sm", D.CYAN, (top.right - 10, top.bottom - 34), anchor="topright")
         d.text("NOW PLAYING", "sm", D.CYAN, (top.left + 12, top.top + 10))
         if rel:
@@ -83,7 +83,10 @@ class GuideChannel(Channel):
             x = r.right + 14
             maxw = top.right - x - 12
             y = top.top + 40
-            d.text(d.fit_text(rel.artist, "md", maxw), "md", D.YELLOW, (x, y)); y += 34
+            artist = d.fit_text(rel.artist, "md", maxw)
+            if x + d.fonts["md"].size(artist)[0] > clock_r.left - 8 and y < clock_r.bottom:
+                y = clock_r.bottom + 2                     # wide fonts: start under the clock
+            d.text(artist, "md", D.YELLOW, (x, y)); y += 34
             d.text(d.fit_text(rel.title, "sm", maxw), "sm", D.WHITE, (x, y)); y += 28
             meta = " · ".join(p for p in (str(rel.year or ""), rel.label.split(",")[0]) if p)
             d.text(d.fit_text(meta, "sm", maxw), "sm", D.GREY, (x, y)); y += 28

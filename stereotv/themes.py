@@ -112,6 +112,16 @@ THEMES: dict[str, dict] = {
         "font": POPPINS, "font2": POPPINS_REG, "mono": DEJAVU_MONO, "scale": 0.95, "shadow": False,
         "style": {**MODERN_STYLE, "backdrop_tone": "light"},
     },
+    # Commodore 64: C64 blue with light-blue border, beige bezel, 8-bit type, BASIC boot screen when idle
+    "c64": {
+        "label": "COMMODORE 64",
+        "colors": {"BLACK": (12, 10, 20), "WHITE": (232, 228, 255), "GREY": (150, 140, 230), "DARK": (52, 40, 120),
+                   "NAVY": (64, 49, 141), "BLUE": (124, 112, 218), "CYAN": (160, 150, 240), "YELLOW": (255, 255, 255),
+                   "AMBER": (213, 223, 124), "RED": (220, 100, 100), "GREEN": (140, 220, 120)},
+        "font": PRESSSTART, "font2": VT323, "mono": VT323, "scale": 0.72, "shadow": False,
+        "style": {"layout": "cable", "radius": 0, "backdrop": False, "body_scale": 1.75,
+                  "frame": {"outer": (190, 184, 168), "inner": (72, 68, 60), "width": 10}},
+    },
 }
 ORDER = list(THEMES)
 
