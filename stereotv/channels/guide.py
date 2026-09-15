@@ -90,7 +90,7 @@ class GuideChannel(Channel):
             d.text(d.fit_text(rel.title, "sm", maxw), "sm", D.WHITE, (x, y)); y += 28
             meta = " · ".join(p for p in (str(rel.year or ""), rel.label.split(",")[0]) if p)
             d.text(d.fit_text(meta, "sm", maxw), "sm", D.GREY, (x, y)); y += 28
-            if self.now.track_title:
+            if self.now.track_title and y + 26 <= top.bottom - 6:      # skip when a wide font ate the room
                 d.text(d.fit_text(self.now.track_title, "sm", maxw), "sm", D.AMBER, (x, y))
         else:
             d.text("NOTHING PLAYING", "md", D.GREY, (top.left + 12, top.top + 60))
