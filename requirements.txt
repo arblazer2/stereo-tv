@@ -7,3 +7,4 @@ audioop-lts; python_version >= '3.13'   # pydub needs audioop, removed in 3.13
 # optional fallback: pyacoustid (+ apt libchromaprint-tools)
 pyserial   # wired CYD remote
 sounddevice   # PortAudio capture backend for PC/Mac (arecord is used on the Pi)
+psutil     # system status channel on PC/Mac (the Pi reads /proc and vcgencmd)

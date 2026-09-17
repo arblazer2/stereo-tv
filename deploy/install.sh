@@ -7,7 +7,7 @@ APPDIR=$(pwd)
 RUNUSER=${RUNUSER:-$USER}
 
 sudo apt-get update
-sudo apt-get install -y python3-pygame python3-numpy python3-requests python3-venv fonts-dejavu-core \
+sudo apt-get install -y python3-pygame python3-numpy python3-requests python3-psutil python3-venv fonts-dejavu-core \
     libegl1 libegl-mesa0 libgles2 libgl1-mesa-dri \
     alsa-utils ffmpeg
 
