@@ -83,16 +83,25 @@ If the screen stays black on a Pi with the KMS driver, add
 
 ## Running on a PC or Mac
 
-No Pi required to try it, or to run it for real off a desktop's line-in:
+No Pi required to try it, or to run it for real off a desktop's line-in.
+
+**Windows** (no Python install needed):
+
+1. Download the repo (Code → Download ZIP) or `git clone https://github.com/arblazer2/stereo-tv.git`.
+2. Double-click `windows\stereo-tv.cmd`. The first run fetches a private portable Python into the folder,
+   installs the dependencies, and walks you through setup (Discogs token, location, audio input).
+3. It opens in a 640×480 window; choose "wide" in setup for 854×480. Pick the input your stereo is
+   connected to (a USB audio interface, or the line-in jack on a sound card).
+
+**Linux / macOS:**
 
 ```bash
 git clone https://github.com/arblazer2/stereo-tv.git && cd stereo-tv
-python -m venv .venv && .venv/bin/pip install -r requirements.txt     # Windows: .venv\Scripts\pip
-.venv/bin/python -m stereotv.setup      # lists your input devices via PortAudio
-.venv/bin/python -m stereotv --windowed # 640x480 window; add "wide" in setup for 854x480
+scripts/run.sh          # first run creates .venv, installs deps, runs the wizard, then starts windowed
 ```
 
-Config lives in `%APPDATA%\stereo-tv` on Windows, `~/Library/Application Support/stereo-tv` on macOS.
+Config lives in `%APPDATA%\stereo-tv` on Windows, `~/Library/Application Support/stereo-tv` on macOS,
+`~/.config/stereo-tv` on Linux. WSL is not a good host: it has no audio input devices.
 For a demo without any audio hardware set `[audio] device = "file:/path/to/song.wav"` — the identifier and
 visualizer run on the file as if it were the line-in. The CYD remote works on a PC too (it's just a COM port).
 

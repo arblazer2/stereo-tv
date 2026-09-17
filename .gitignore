@@ -6,3 +6,4 @@ covers/
 discogs_token
 ha_token
 *.log
+python/
