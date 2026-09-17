@@ -138,7 +138,7 @@ class NowPlayingChannel(Channel):
             # the boot screen
             x, y = safe.left + 8, top + 10
             lines = ["**** COMMODORE 64 BASIC V2 ****", "", " 64K RAM SYSTEM  38911 BASIC BYTES FREE", "", "READY.",
-                     "LOAD \"STEREO-TV\",8,1", "", "READY."]
+                     "LOAD \"GROOVE BOX\",8,1", "", "READY."]
             for ln in lines:
                 d.text(ln, "sm", D.CYAN, (x, y), shadow=False); y += 26
             st = self.now.status or ""

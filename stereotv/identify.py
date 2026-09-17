@@ -200,6 +200,8 @@ class Identifier(threading.Thread):
         self.last_rel: Release | None = None                           # last release we positively matched
         self.last_side: str | None = None
         self.flip_candidate = False                                    # audio resumed within flip_window
+        self.track_min = float(ic.get("acoustid_min_seconds", 60))    # shorter captures aren't worth a lookup
+        self.advance_on_resume = False                                 # track ID'd at its end: step on when audio resumes
         self.verify_delay = float(ic.get("verify_seconds", 20))  # after a clocked advance, confirm
         self.track_end_at: float | None = None
         self.track_ref: tuple[int, int] | None = None            # (release_id, seq) the clock is on
@@ -215,9 +217,12 @@ class Identifier(threading.Thread):
             self.recognizers.append(ShazamRecognizer())
         except Exception as e:  # noqa: BLE001
             log.warning("shazamio unavailable: %s", e)
+        self.acoustid = None
         if self.acoustid_key:
             try:
-                self.recognizers.append(AcoustIDRecognizer(self.acoustid_key))
+                # AcoustID only matches complete tracks, so it runs at track end on the whole-track capture
+                self.acoustid = AcoustIDRecognizer(self.acoustid_key)
+                log.info("acoustid enabled for end-of-track identification")
             except Exception as e:  # noqa: BLE001
                 log.warning("pyacoustid unavailable: %s", e)
         if not self.recognizers:
@@ -256,11 +261,24 @@ class Identifier(threading.Thread):
                         self.flip_candidate = bool(self.last_rel) and (t - silent_since) <= self.flip_window
                         attempts = 0
                     playing, audio_since = True, t
+                    self.audio.track_begin()
+                    if self.advance_on_resume:
+                        self.advance_on_resume = False
+                        self._advance(con, t)
+                        matched = True
                     log.debug("audio started (flip candidate=%s)", self.flip_candidate)
             else:
                 if playing:
                     playing, silent_since = False, t
                     log.debug("audio stopped")
+                    if self.acoustid and (not matched or self.now.confidence < 0.5) and self.audio.track_seconds() >= self.track_min:
+                        try:
+                            if self._identify_track_end(con):
+                                matched = True
+                        except Exception as e:  # noqa: BLE001
+                            log.warning("acoustid track-end: %s", e)
+                    else:
+                        self.audio.track_end()
                 if self.now.playing and t - silent_since >= self.clear_after:
                     log.info("silent for %.0fs: clearing now playing", t - silent_since)
                     self.now.clear()
@@ -370,6 +388,40 @@ class Identifier(threading.Thread):
             self.now.set(rel, source=rec.engine, confidence=0.0, track_title=rec.track)
         self.prev_rec = rec
         self.track_end_at = self.track_ref = self.verify_at = None
+
+    # ------------------------------------------------------------ end-of-track AcoustID
+    def _identify_track_end(self, con: sqlite3.Connection) -> bool:
+        import wave
+        samples = self.audio.track_end()
+        secs = len(samples) / self.audio.track_rate
+        path = config.DATA_DIR / "track.wav"
+        with wave.open(str(path), "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(self.audio.track_rate)
+            w.writeframes(samples.tobytes())
+        self.now.set_status("ACOUSTID")
+        rec = self.acoustid.recognize(path)
+        if not rec:
+            log.info("acoustid: no match for the %.0fs track", secs)
+            return False
+        log.info("acoustid heard: %s - %s (%.0fs track)", rec.artist, rec.track, secs)
+        sticky = 0.2 if self.now.source == "auto" else 0.0
+        prev_title = self.prev_rec.track if self.prev_rec and self.prev_rec.track != rec.track else None
+        rel, conf, track = match_collection(con, rec, self.now.release, stickiness=sticky, prev_title=prev_title)
+        self.prev_rec = rec
+        if rel is None or conf < self.min_conf:
+            if not self.now.playing:
+                self._show_external(rec)
+            log.info("acoustid: not in collection (best conf %.2f)", conf)
+            return False
+        side, pos = _split_position(track["position"]) if track else (None, None)
+        self.now.set(rel, source="auto", confidence=conf, side=side, track=pos, track_title=track["title"] if track else rec.track)
+        self.last_rel, self.last_side = rel, side or self.last_side
+        self.track_end_at = self.verify_at = None
+        self.track_ref = (rel.release_id, int(track["seq"])) if track else None
+        self.advance_on_resume = self.track_ref is not None       # that track just finished: step to the next on resume
+        log.info("acoustid matched %s - %s (conf %.2f) %s", rel.artist, rel.title, conf, f"side {side} trk {pos}" if side else "")
+        self.now.set_status("MATCHED")
+        return True
 
     # ------------------------------------------------------------ side-flip presumption
     def _presume_next_side(self, con: sqlite3.Connection, t: float) -> bool:

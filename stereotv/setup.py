@@ -136,10 +136,10 @@ def main(argv: list[str] | None = None) -> int:
     interactive = not a.yes
     v: dict = {}
 
-    print("stereo-tv setup\n===============")
+    print(f"{config.APP_NAME} setup\n" + "=" * (len(config.APP_NAME) + 6))
     v["contact"] = a.contact or (ask("Contact for API user-agents (a URL or email; sites like Discogs/Wikipedia ask for one)",
                                      config.DEFAULTS["app"]["contact"]) if interactive else config.DEFAULTS["app"]["contact"])
-    ua = f"stereo-tv/0.1 (+{v['contact']})"
+    ua = f"{config.UA_NAME} (+{v['contact']})"
 
     # ---- Discogs
     print("\nDiscogs: generate a personal access token at https://www.discogs.com/settings/developers")

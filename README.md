@@ -1,6 +1,6 @@
-# stereo-tv
+# Groove Box TV
 
-A retro "cable TV" display for an analog stereo. A Raspberry Pi drives a CRT or
+A retro "cable TV" display for an analog stereo (repo: `stereo-tv`). A Raspberry Pi drives a CRT or
 small monitor with fake cable channels whose content follows whatever record is
 playing, identified automatically from a line-in feed.
 

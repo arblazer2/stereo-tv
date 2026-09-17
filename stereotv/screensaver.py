@@ -252,7 +252,7 @@ class WeatherSaver:
         pygame.draw.rect(surface, (8, 16, 60), foot)
         rel = self.now.release or self.now.last_played
         tag = "NOW PLAYING" if self.now.release else "LAST PLAYED"
-        msg = f"{tag}: {rel.artist} · {rel.title}" if rel else "STEREO-TV · NOTHING PLAYING"
+        msg = f"{tag}: {rel.artist} · {rel.title}" if rel else "GROOVE BOX TV · NOTHING PLAYING"
         d.text(d.fit_text(msg, "sm", safe.width), "sm", D.YELLOW, (safe.left + 8, foot.centery), anchor="midleft", shadow=False)
 
     def _draw_current(self, surface, w) -> None:

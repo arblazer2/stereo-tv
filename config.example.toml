@@ -68,7 +68,10 @@ retry_seconds = 20         # while unmatched, retry this often for the first ret
 retry_attempts = 4
 flip_window_seconds = 240  # audio resuming within this after a known record = a side flip: assume its next side
                            # (track 1) when Shazam doesn't know the first track; every track boundary re-verifies
-acoustid_api_key = ""      # optional fallback; https://acoustid.org/new-application
+acoustid_api_key = ""      # optional; https://acoustid.org/new-application (needs apt libchromaprint-tools + pip pyacoustid).
+                           # AcoustID only matches COMPLETE tracks, so it runs when a track ends (gap detected) on the
+                           # whole captured track — it catches deep cuts Shazam misses, one track late.
+acoustid_min_seconds = 60
 
 [web]
 enabled = true

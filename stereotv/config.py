@@ -6,7 +6,9 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-APP = "stereo-tv"
+APP = "stereo-tv"            # config/data dir name (kept stable)
+APP_NAME = "Groove Box TV"   # what it calls itself
+UA_NAME = "groove-box-tv/0.1"
 
 import sys
 
@@ -83,7 +85,7 @@ def user_agent(cfg: dict[str, Any] | None = None) -> str:
     cfg = cfg or load()
     ua = cfg["discogs"].get("user_agent") or ""
     if not ua:
-        ua = f"stereo-tv/0.1 (+{cfg['app']['contact']})"
+        ua = f"{UA_NAME} (+{cfg['app']['contact']})"
     return ua
 
 
@@ -93,7 +95,7 @@ def load() -> dict[str, Any]:
         with CONFIG_FILE.open("rb") as f:
             cfg = _merge(DEFAULTS, tomllib.load(f))
     if not cfg["discogs"].get("user_agent"):
-        cfg["discogs"]["user_agent"] = f"stereo-tv/0.1 (+{cfg['app']['contact']})"
+        cfg["discogs"]["user_agent"] = f"{UA_NAME} (+{cfg['app']['contact']})"
     # radar defaults to the configured location
     loc = cfg["location"]
     if cfg["radar"].get("lat") is None:

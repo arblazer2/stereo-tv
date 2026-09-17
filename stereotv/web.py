@@ -29,7 +29,7 @@ log = logging.getLogger("stereotv.web")
 
 PAGE = """<!doctype html><html><head><meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<title>stereo-tv</title>
+<title>Groove Box TV</title>
 <style>
 body{font-family:system-ui,sans-serif;background:#0c1848;color:#eee;margin:0;padding:12px}
 h1{font-size:18px;margin:0 0 8px;color:#ffd83c}
@@ -45,7 +45,7 @@ li img{width:56px;height:56px;object-fit:cover;background:#000;flex:none}
 li b{display:block}li span{color:#aaa;font-size:13px}
 button{font-size:15px;padding:8px 12px;border-radius:6px;border:0;background:#ffaa28;color:#000}
 </style></head><body>
-<h1>STEREO-TV &middot; manual override</h1>
+<h1>GROOVE BOX TV &middot; manual override</h1>
 <div id=now><img id=nimg><div class=t><b id=nt>&nbsp;</b><small id=ns></small></div><button onclick="clr()">Auto</button></div>
 <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><small style="color:#9cf">THEME</small><select id=theme onchange="setTheme(this.value)" style="flex:1;font-size:15px;padding:6px;border-radius:6px;background:#000;color:#fff;border:1px solid #5adcf0"></select></div>
 <input id=q placeholder="Search artist or album" autofocus autocomplete=off>

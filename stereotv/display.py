@@ -89,7 +89,7 @@ class Display:
                 self.screen = None
         if self.screen is None:
             self.screen = pygame.display.set_mode((width, height), flags)
-        pygame.display.set_caption("stereo-tv")
+        pygame.display.set_caption("Groove Box TV")
         try:
             desk = pygame.display.get_desktop_sizes()[0]
         except Exception:  # noqa: BLE001

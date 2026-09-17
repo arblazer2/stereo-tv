@@ -36,6 +36,14 @@ class AudioStream:
         self.total = 0                    # frames written since start
         self.level = 0.0                  # RMS of last chunk (0..1)
         self.peak = 0.0                   # peak abs sample of last chunk
+        # whole-track capture at 11025 Hz int16 for AcoustID (which matches complete tracks only)
+        self.track_rate = 11025
+        self._track_step = max(1, int(round(rate / self.track_rate)))
+        self._track_max = int(15 * 60 * self.track_rate)
+        self._track_buf = np.zeros(self._track_max, dtype=np.int16)
+        self._track_len = 0
+        self._track_active = False
+        self._track_phase = 0
         self.lock = threading.Lock()
         self.alive = False                # arecord currently delivering data
         self._stop = threading.Event()
@@ -199,6 +207,27 @@ class AudioStream:
             self.total += k
             self.level = float(np.sqrt(np.mean(mono * mono)))
             self.peak = float(np.max(np.abs(mono)))
+            if self._track_active and self._track_len < self._track_max:
+                dec = mono[self._track_phase::self._track_step]
+                self._track_phase = (self._track_phase - k) % self._track_step
+                room = self._track_max - self._track_len
+                dec = dec[:room]
+                self._track_buf[self._track_len:self._track_len + len(dec)] = np.clip(dec * 32767.0, -32768, 32767).astype(np.int16)
+                self._track_len += len(dec)
+
+    # ------------------------------------------------------------ whole-track capture
+    def track_begin(self) -> None:
+        with self.lock:
+            self._track_len, self._track_active, self._track_phase = 0, True, 0
+
+    def track_seconds(self) -> float:
+        return self._track_len / self.track_rate
+
+    def track_end(self) -> np.ndarray:
+        """Stop capturing and return the whole track as int16 at track_rate."""
+        with self.lock:
+            self._track_active = False
+            return self._track_buf[:self._track_len].copy()
 
     def latest(self, seconds: float) -> np.ndarray:
         """Most recent `seconds` of mono audio, oldest first."""
