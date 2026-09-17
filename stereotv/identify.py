@@ -194,6 +194,12 @@ class Identifier(threading.Thread):
         self.min_conf = float(ic.get("min_confidence", 0.55))
         self.recheck = float(ic.get("recheck_seconds", 150))   # locked, no durations: re-ID this often
         self.clear_after = float(ic.get("clear_after_seconds", 300))  # silence this long -> nothing playing
+        self.retry_interval = float(ic.get("retry_seconds", 20))      # quick retries right after audio starts...
+        self.retry_fast = int(ic.get("retry_attempts", 4))             # ...this many times, then `interval`
+        self.flip_window = float(ic.get("flip_window_seconds", 240))  # a gap shorter than this = side flip
+        self.last_rel: Release | None = None                           # last release we positively matched
+        self.last_side: str | None = None
+        self.flip_candidate = False                                    # audio resumed within flip_window
         self.verify_delay = float(ic.get("verify_seconds", 20))  # after a clocked advance, confirm
         self.track_end_at: float | None = None
         self.track_ref: tuple[int, int] | None = None            # (release_id, seq) the clock is on
@@ -232,6 +238,7 @@ class Identifier(threading.Thread):
         audio_since = 0.0
         last_try = 0.0
         matched = False
+        attempts = 0
         while not self._stop.is_set():
             time.sleep(0.5)
             if not self.audio.alive:
@@ -245,8 +252,11 @@ class Identifier(threading.Thread):
                     if t - silent_since >= self.silence_gap:
                         matched = False
                         self.track_end_at = self.track_ref = self.verify_at = None
+                        # a short gap after a known record is most likely its next side
+                        self.flip_candidate = bool(self.last_rel) and (t - silent_since) <= self.flip_window
+                        attempts = 0
                     playing, audio_since = True, t
-                    log.debug("audio started")
+                    log.debug("audio started (flip candidate=%s)", self.flip_candidate)
             else:
                 if playing:
                     playing, silent_since = False, t
@@ -283,17 +293,24 @@ class Identifier(threading.Thread):
                 else:
                     self.now.set_status("LOCKED")
                 continue
-            if t - audio_since < self.settle or t - last_try < self.interval:
+            gap = self.retry_interval if attempts < self.retry_fast else self.interval
+            if t - audio_since < self.settle or t - last_try < gap:
                 self.now.set_status("LISTENING")
                 continue
 
             last_try = t
+            attempts += 1
             self.now.set_status("IDENTIFYING")
             try:
                 matched = self._identify(con)
             except Exception as e:  # noqa: BLE001
                 log.warning("identify failed: %s", e)
                 self.now.set_status("ID ERROR")
+            if not matched and self.flip_candidate:
+                # Shazam doesn't know this track; assume the next side of the record that just ended
+                self.flip_candidate = False
+                if self._presume_next_side(con, t):
+                    matched = True
 
     def _identify(self, con: sqlite3.Connection) -> bool:
         wav = self.audio.write_wav(self.tmp, self.clip)
@@ -332,6 +349,8 @@ class Identifier(threading.Thread):
         log.info("matched %s - %s (conf %.2f) %s", rel.artist, rel.title, conf,
                  f"side {side} trk {pos}" if side else "")
         self._start_clock(rel.release_id, track, rec.offset)
+        self.last_rel, self.last_side = rel, side or self.last_side
+        self.flip_candidate = False
         self.now.set_status("MATCHED")
         return True
 
@@ -351,6 +370,32 @@ class Identifier(threading.Thread):
             self.now.set(rel, source=rec.engine, confidence=0.0, track_title=rec.track)
         self.prev_rec = rec
         self.track_end_at = self.track_ref = self.verify_at = None
+
+    # ------------------------------------------------------------ side-flip presumption
+    def _presume_next_side(self, con: sqlite3.Connection, t: float) -> bool:
+        """After a short silence following a known record, assume its next side, track 1.
+        The track clock runs from there and every track boundary verifies with Shazam."""
+        rel, side = self.last_rel, self.last_side
+        if not rel or rel.release_id <= 0 or not side:
+            return False
+        tracks = con.execute("SELECT * FROM tracks WHERE release_id=? ORDER BY seq", (rel.release_id,)).fetchall()
+        sides: list[str] = []
+        for tr in tracks:
+            sd = _split_position(tr["position"])[0]
+            if sd and sd not in sides:
+                sides.append(sd)
+        if side.upper() not in sides or sides.index(side.upper()) + 1 >= len(sides):
+            return False                                  # last side already: could be anything next
+        nxt = sides[sides.index(side.upper()) + 1]
+        first = next(tr for tr in tracks if _split_position(tr["position"])[0] == nxt)
+        s2, pos = _split_position(first["position"])
+        self.now.set(rel, source="auto", confidence=0.3, side=s2, track=pos, track_title=first["title"])
+        self._start_clock(rel.release_id, dict(first), offset=-self.clip)   # clip just started: position 0
+        self.verify_at = t + self.verify_delay
+        self.last_side = s2
+        log.info("presumed side %s of %s - %s (unrecognised first track)", s2, rel.artist, rel.title)
+        self.now.set_status("PRESUMED")
+        return True
 
     # ------------------------------------------------------------ track clock
     def _start_clock(self, release_id: int, track: dict | None, offset: float | None) -> None:
@@ -385,6 +430,7 @@ class Identifier(threading.Thread):
             self.verify_at = t + self.verify_delay
             return
         side, pos = _split_position(nxt["position"])
+        self.last_side = side or self.last_side
         self.now.set_track(side, pos, nxt["title"])
         log.info("track clock: advanced to %s %s", nxt["position"], nxt["title"])
         dur = parse_duration(nxt["duration"])

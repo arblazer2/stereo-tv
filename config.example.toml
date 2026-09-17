@@ -64,6 +64,10 @@ override_minutes = 30      # manual pick pauses auto-ID this long
 recheck_seconds = 150      # locked but no track durations known: re-identify this often
 verify_seconds = 20        # after the track clock advances, confirm with a lookup this soon
 clear_after_seconds = 300  # this much silence -> "nothing playing" (last played is remembered)
+retry_seconds = 20         # while unmatched, retry this often for the first retry_attempts tries, then `interval`
+retry_attempts = 4
+flip_window_seconds = 240  # audio resuming within this after a known record = a side flip: assume its next side
+                           # (track 1) when Shazam doesn't know the first track; every track boundary re-verifies
 acoustid_api_key = ""      # optional fallback; https://acoustid.org/new-application
 
 [web]
