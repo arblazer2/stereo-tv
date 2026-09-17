@@ -277,7 +277,7 @@ class Display:
     def flip(self) -> float:
         if self.style.get("frame"):
             self.frame(self.surface)
-        if self.scanlines_on:
+        if self.scanlines_on and self.style.get("scanlines", True):     # modern themes opt out
             self.surface.blit(self._scan, (0, 0), special_flags=pygame.BLEND_RGB_SUB)
         if self.surface is not self.screen:
             if self.screen.get_size() != (self.w, self.h):

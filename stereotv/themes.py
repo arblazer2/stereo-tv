@@ -26,7 +26,7 @@ PRESSSTART = str(FONT_DIR / "PressStart2P-Regular.ttf")
 
 # "style" = layout layer. Missing keys fall back to the classic cable-box look.
 CABLE_STYLE = {"layout": "cable", "radius": 0, "backdrop": False}
-MODERN_STYLE = {"layout": "modern", "radius": 12, "backdrop": True, "backdrop_tone": "dark"}
+MODERN_STYLE = {"layout": "modern", "radius": 12, "backdrop": True, "backdrop_tone": "dark", "scanlines": False}
 
 THEMES: dict[str, dict] = {
     # the original: late-80s cable box

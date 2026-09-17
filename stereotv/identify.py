@@ -266,11 +266,12 @@ class Identifier(threading.Thread):
                         self.advance_on_resume = False
                         self._advance(con, t)
                         matched = True
-                    log.debug("audio started (flip candidate=%s)", self.flip_candidate)
+                    log.info("audio started after %.1fs gap (flip candidate=%s)", t - silent_since, self.flip_candidate)
             else:
                 if playing:
                     playing, silent_since = False, t
-                    log.debug("audio stopped")
+                    log.info("audio stopped after %.0fs (matched=%s conf=%.2f captured=%.0fs)", t - audio_since, matched,
+                             self.now.confidence, self.audio.track_seconds())
                     if self.acoustid and (not matched or self.now.confidence < 0.5) and self.audio.track_seconds() >= self.track_min:
                         try:
                             if self._identify_track_end(con):
