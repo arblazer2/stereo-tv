@@ -111,8 +111,11 @@ def match_collection(con: sqlite3.Connection, rec: Recognized, current: Release 
             tt = ratio(rec.track, tr["title"])
             if tt > t:
                 t, track_row = tt, tr
-        # weights: artist is a gate, track proves the pressing, album helps
-        score = 0.35 * a + 0.45 * t + 0.20 * album
+        # weights: artist is a gate, track proves the pressing, album helps.
+        # Partial similarities don't count: "Long Night Moon" vs "You Don't Want Me Around" is 0.46, i.e. nothing.
+        t_eff = t if t >= 0.75 else 0.0
+        album_eff = album if album >= 0.6 else 0.0
+        score = 0.35 * a + 0.45 * t_eff + 0.20 * album_eff
         if current and r["release_id"] == current.release_id:
             score += stickiness              # hysteresis: stick with what we have
         if prev_title and track_row is not None and t >= 0.75:
@@ -410,10 +413,10 @@ class Identifier(threading.Thread):
         rel, conf, track = match_collection(con, rec, self.now.release, stickiness=sticky, prev_title=prev_title)
         self.prev_rec = rec
         if rel is None or conf < self.min_conf:
-            if not self.now.playing:
-                self._show_external(rec)
-            log.info("acoustid: not in collection (best conf %.2f)", conf)
-            return False
+            # a fresh positive ID of a different record beats whatever stale lock is on screen
+            self._show_external(rec)
+            log.info("acoustid: not in collection (best conf %.2f); showing it as heard", conf)
+            return True
         side, pos = _split_position(track["position"]) if track else (None, None)
         self.now.set(rel, source="auto", confidence=conf, side=side, track=pos, track_title=track["title"] if track else rec.track)
         self.last_rel, self.last_side = rel, side or self.last_side
