@@ -175,10 +175,27 @@ class AcoustIDRecognizer:
         self._key = api_key
 
     def recognize(self, wav: Path) -> Recognized | None:
-        for score, rid, title, artist in self._acoustid.match(self._key, str(wav)):
-            if score >= 0.5 and title:
-                return Recognized(artist=artist or "", track=title, engine=self.name)
-        return None
+        """Best AcoustID hit with its album (release group) and Cover Art Archive artwork."""
+        dur, fp = self._acoustid.fingerprint_file(str(wav))
+        data = self._acoustid.lookup(self._key, fp, dur, meta="recordings releasegroups")
+        best = None
+        for res in data.get("results", []):
+            if res.get("score", 0) < 0.5:
+                continue
+            for rec in res.get("recordings") or []:
+                if not rec.get("title"):
+                    continue
+                artist = " ".join((a.get("name", "") + a.get("joinphrase", "")) for a in rec.get("artists") or []).strip()
+                # prefer a studio album release group over singles/compilations
+                rgs = rec.get("releasegroups") or []
+                rgs.sort(key=lambda g: (g.get("type") != "Album", "Compilation" in (g.get("secondarytypes") or []),
+                                        "Live" in (g.get("secondarytypes") or [])))
+                rg = rgs[0] if rgs else {}
+                cand = (res["score"], Recognized(artist=artist, track=rec["title"], album=rg.get("title", ""), engine=self.name,
+                                                 cover_url=f"https://coverartarchive.org/release-group/{rg['id']}/front-500" if rg.get("id") else ""))
+                if best is None or cand[0] > best[0]:
+                    best = cand
+        return best[1] if best else None
 
 
 # ---------------------------------------------------------------- the loop
