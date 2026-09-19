@@ -92,13 +92,13 @@ class VisualizerChannel(Channel):
         self.peak_v = np.where(rise, 0.0, self.peak_v + dt * 3.0)
         self.peaks = np.clip(self.peaks - self.peak_v * dt, 0.0, 1.0)
         if self.mode == "vu":
-            st = self.audio.latest_stereo(0.3)                 # raw level: the VU is a meter, not a show
+            st = self.audio.latest_stereo(0.12)                # raw level: the VU is a meter, not a show
             if len(st):
                 rms = np.sqrt((st * st).mean(axis=0)) + 1e-9
                 # VU scale: -20 dB .. +3 dB over the arc, 0 VU at -10 dBFS
                 target = np.clip((20 * np.log10(rms) + 10 + 20) / 23.0, 0.0, 1.0)
-                # ballistics: ~300 ms rise, slower fall
-                k_up, k_dn = min(1.0, dt / 0.15), min(1.0, dt / 0.4)
+                # ballistics: quick rise, moderate fall (real VU: ~300 ms to 99%, we want it lively on screen)
+                k_up, k_dn = min(1.0, dt / 0.06), min(1.0, dt / 0.22)
                 self.vu = np.where(target > self.vu, self.vu + (target - self.vu) * k_up, self.vu + (target - self.vu) * k_dn)
                 pk = np.abs(st).max(axis=0)
                 self.vu_peak = np.where(pk > 0.95, 1.0, np.maximum(0.0, self.vu_peak - dt))
