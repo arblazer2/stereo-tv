@@ -119,7 +119,8 @@ visualizer run on the file as if it were the line-in. The CYD remote works on a 
 ## Using it
 
 - Keyboard: **←/→ or 1–9, 0** change channel · **Space** screensaver (again = next) ·
-  **T** cycle themes (Cable '88, Prevue, Teletext, Phosphor, Vaporwave, Amber, Weather '95, Arcade, Modern Dark, Modern Light, Commodore 64) · **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it.
+  **T** cycle themes (Cable '88, Prevue, Teletext, Phosphor, Vaporwave, Amber, Weather '95, Arcade, Modern Dark, Modern Light, Commodore 64) · **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it. On channel 2: **V** or **Enter** cycles the visualizer
+  (spectrum, VU meters, XY scope, waterfall).
 - Phone: `http://<pi>:8080/` — search, tap a record to override auto-ID for 30 min. Use this for
   records the fingerprint services don't know: **Shazam recognises studio recordings and misses many live
   albums and deep cuts**. An optional AcoustID key (`config.example.toml`) adds a second opinion at the end

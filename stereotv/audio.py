@@ -37,6 +37,10 @@ class AudioStream:
         self.total = 0                    # frames written since start
         self.level = 0.0                  # RMS of last chunk (0..1)
         self.peak = 0.0                   # peak abs sample of last chunk
+        # short stereo ring (2 s) for the stereo visualizers (VU, XY); mono ring above feeds everything else
+        self._st_n = int(2.0 * rate)
+        self._st = np.zeros((self._st_n, 2), dtype=np.float32)
+        self._st_pos = 0
         # whole-track capture at 11025 Hz int16 for AcoustID (which matches complete tracks only)
         self.track_rate = 11025
         self._track_step = max(1, int(round(rate / self.track_rate)))
@@ -140,6 +144,8 @@ class AudioStream:
                     if not self.alive:
                         log.info("line-in active on %s", info["name"])
                     self.alive = True
+                    if indata.ndim > 1 and indata.shape[1] > 1:
+                        self.push_stereo(indata[:, 0], indata[:, 1])
                     mono = indata.mean(axis=1) if indata.ndim > 1 else indata[:, 0]
                     self.push(mono.astype(np.float32, copy=False))
 
@@ -187,7 +193,11 @@ class AudioStream:
             self.alive = True
             pcm = np.frombuffer(data, dtype=np.int16)
             if self.channels > 1:
-                pcm = pcm.reshape(-1, self.channels).mean(axis=1)
+                fr = pcm.reshape(-1, self.channels).astype(np.float32) / 32768.0
+                self.push_stereo(fr[:, 0], fr[:, 1])
+                pcm = fr.mean(axis=1)
+                self.push(pcm)
+                continue
             self.push(pcm.astype(np.float32) / 32768.0)
 
     # ------------------------------------------------------------ buffer
@@ -231,6 +241,36 @@ class AudioStream:
         with self.lock:
             self._track_active = False
             return self._track_buf[:self._track_len].copy()
+
+    def push_stereo(self, left: np.ndarray, right: np.ndarray) -> None:
+        k = len(left)
+        if k == 0:
+            return
+        g = self.input_gain
+        with self.lock:
+            end = self._st_pos + k
+            if end <= self._st_n:
+                self._st[self._st_pos:end, 0] = left * g
+                self._st[self._st_pos:end, 1] = right * g
+            else:
+                first = self._st_n - self._st_pos
+                self._st[self._st_pos:, 0] = left[:first] * g; self._st[self._st_pos:, 1] = right[:first] * g
+                self._st[:k - first, 0] = left[first:] * g; self._st[:k - first, 1] = right[first:] * g
+            self._st_pos = end % self._st_n
+
+    def latest_stereo(self, seconds: float) -> np.ndarray:
+        """(n, 2) float32 of the most recent stereo audio; mono sources return L == R."""
+        k = min(int(seconds * self.rate), self._st_n)
+        with self.lock:
+            start = (self._st_pos - k) % self._st_n
+            if start + k <= self._st_n:
+                out = self._st[start:start + k].copy()
+            else:
+                out = np.concatenate((self._st[start:], self._st[: (start + k) % self._st_n]))
+        if not out.any():                     # no stereo pushed (file/mono source): duplicate the mono ring
+            m = self.latest(seconds)
+            out = np.stack([m, m], axis=1) if len(m) else out
+        return out
 
     def latest(self, seconds: float) -> np.ndarray:
         """Most recent `seconds` of mono audio, oldest first."""
