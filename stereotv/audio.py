@@ -23,8 +23,9 @@ log = logging.getLogger("stereotv.audio")
 class AudioStream:
     def __init__(self, device: str = "plughw:CARD=CODEC,DEV=0", rate: int = 44100,
                  channels: int = 2, buffer_seconds: float = 15.0, chunk_frames: int = 2048,
-                 mixer_control: str = "", mixer_gain: str = ""):
+                 mixer_control: str = "", mixer_gain: str = "", input_gain_db: float = 0.0):
         self.device = device
+        self.input_gain = 10 ** (input_gain_db / 20.0)   # digital make-up gain for quiet inputs (whisper-level feeds)
         self.mixer_control = mixer_control      # e.g. "Mic"; set on every (re)start so it survives reboots
         self.mixer_gain = mixer_gain            # e.g. "40%"
         self.rate = rate
@@ -195,6 +196,8 @@ class AudioStream:
         k = len(mono)
         if k == 0:
             return
+        if self.input_gain != 1.0:
+            mono = np.clip(mono * self.input_gain, -1.0, 1.0)
         with self.lock:
             end = self.pos + k
             if end <= self.n:

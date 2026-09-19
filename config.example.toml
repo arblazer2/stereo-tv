@@ -51,6 +51,7 @@ channels = 2
 # capture gain applied at startup (survives reboots). Line-level into the USB-C dongle's mic input: ~40%.
 # mixer_control = "Mic"
 # mixer_gain = "40%"
+# input_gain_db = 0        # digital boost after capture, for inputs that can only take a whisper (check GET /api/audio)
 
 [identify]
 enabled = true

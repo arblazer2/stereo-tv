@@ -152,7 +152,8 @@ class App:
             self.audio = AudioStream(cfg["audio"]["device"], int(cfg["audio"].get("rate", 44100)),
                                      int(cfg["audio"].get("channels", 2)),
                                      mixer_control=cfg["audio"].get("mixer_control", ""),
-                                     mixer_gain=cfg["audio"].get("mixer_gain", ""))
+                                     mixer_gain=cfg["audio"].get("mixer_gain", ""),
+                                     input_gain_db=float(cfg["audio"].get("input_gain_db", 0.0)))
             self.audio.start()
         if self.audio and cfg["identify"].get("enabled", True):
             from stereotv.identify import Identifier
