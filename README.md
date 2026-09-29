@@ -6,9 +6,13 @@ playing, identified automatically from a line-in feed.
 
 ![stereo-tv channels](docs/screenshots/montage.png)
 
-Ten themes, from late-80s cable to modern dark and light:
+Fourteen themes, from late-80s cable to modern dark and light:
 
 ![themes](docs/screenshots/themes.png)
+
+Plus three with their own layouts, not just colours: **Stereo Guide** (cable-guide listings grid), **Faceplate** (receiver bezel, lit readout, tuner scale that follows the channel) and **Sleeve Poster** (Swiss type on paper, giant cropped record):
+
+![new themes](docs/screenshots/themes_new.png)
 
 **What it does**
 
@@ -119,7 +123,7 @@ visualizer run on the file as if it were the line-in. The CYD remote works on a 
 ## Using it
 
 - Keyboard: **←/→ or 1–9, 0** change channel · **Space** screensaver (again = next) ·
-  **T** cycle themes (Cable '88, Prevue, Teletext, Phosphor, Vaporwave, Amber, Weather '95, Arcade, Modern Dark, Modern Light, Commodore 64) · **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it. On channel 2: **V** or **Enter** cycles the visualizer
+  **T** cycle themes (Cable '88, Prevue, Teletext, Phosphor, Vaporwave, Amber, Weather '95, Arcade, Modern Dark, Modern Light, Commodore 64, Stereo Guide, Faceplate, Sleeve Poster) · **S** scanlines · **Q** quit (systemd restarts it). On channel 8: **Enter** re-spin, **P** play it. On channel 2: **V** or **Enter** cycles the visualizer
   (spectrum, VU meters, XY scope, waterfall).
 - Phone: `http://<pi>:8080/` — search, tap a record to override auto-ID for 30 min. Use this for
   records the fingerprint services don't know: **Shazam recognises studio recordings and misses many live

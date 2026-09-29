@@ -123,6 +123,7 @@ class App:
         self.channels[14] = ThisDayChannel(self.d, self.now)
         self.channels[15] = ValueChannel(self.d, self.now)
         self.channels[9] = PersonnelChannel(self.d, self.now)
+        self.d.channels = self.channels     # themed chrome (guide layout) lists them
         self.channels[self.cur].enter()
         sc = cfg.get("screensaver", {})
         self.saver = Screensaver(self.d, self.now, cfg) if sc.get("enabled", True) else None
@@ -224,6 +225,8 @@ class App:
 
     def set_theme(self, name: str) -> None:
         self.d.apply_theme(name)
+        from stereotv.channels import designs
+        designs.reset()
         self._save_state()
         # channels cache rendered surfaces; bump NowPlaying's version so they rebuild
         self.now.version += 1
@@ -368,6 +371,9 @@ class App:
             elif self.saving:
                 self.saver.update(dt)
                 self.saver.draw(self.d.surface)
+            elif self.d.style.get("design"):
+                from stereotv.channels import designs
+                designs.draw(self, ch)
             else:
                 ch.draw(self.d.surface)
             if self.osd_left > 0:

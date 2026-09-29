@@ -53,6 +53,7 @@ class Display:
                  scaling: str = "gpu", font_scale: float = 1.0):
         self.w, self.h = width, height
         self.theme = theme
+        self.channels: dict = {}          # set by main; themed chrome may list them
         self.font_scale = font_scale
         self.fps = fps
         self.scanlines_on = scanlines
@@ -138,6 +139,8 @@ class Display:
             "mono": pygame.font.Font(mp, int(26 * k2)),
             "mono_lg": pygame.font.Font(mp, int(40 * k2)),
         }
+        self.font_paths = {"font": fp, "font2": f2, "mono": mp}
+        self._px_fonts: dict = {}
         self._backdrops: dict = {}
         self.theme_version = getattr(self, "theme_version", 0) + 1
         log.info("theme %s", self.theme)
@@ -146,6 +149,33 @@ class Display:
     @property
     def modern(self) -> bool:
         return self.style.get("layout") == "modern"
+
+    @property
+    def layout(self) -> str:
+        """cable | modern | guide | faceplate | poster"""
+        return self.style.get("layout", "cable")
+
+    def font_px(self, size: int, face: str = "font") -> pygame.font.Font:
+        """A theme face at an exact pixel size (cached); for display type that must fit a box."""
+        key = (face, size)
+        f = self._px_fonts.get(key)
+        if f is None:
+            f = self._px_fonts[key] = pygame.font.Font(self.font_paths.get(face), size)
+        return f
+
+    def fit_font(self, s: str, max_w: int, hi: int, lo: int = 16, face: str = "font") -> pygame.font.Font:
+        """Largest size in [lo, hi] at which s fits max_w."""
+        for px in range(hi, lo - 1, -2):
+            f = self.font_px(px, face)
+            if f.size(s)[0] <= max_w:
+                return f
+        return self.font_px(lo, face)
+
+    def text_px(self, s: str, f: pygame.font.Font, color, pos, anchor: str = "topleft") -> pygame.Rect:
+        img = f.render(s, True, color)
+        r = img.get_rect(**{anchor: pos})
+        self.surface.blit(img, r)
+        return r
 
     def panel(self, surface: pygame.Surface, rect, fill, border=None, width: int = 2, radius: int | None = None) -> None:
         """Themed rectangle: rounded in modern layouts, square in cable ones."""
@@ -197,10 +227,12 @@ class Display:
                 sh = pygame.Surface((rect.w + 2 * i, rect.h + 2 * i), pygame.SRCALPHA)
                 pygame.draw.rect(sh, (0, 0, 0, a), sh.get_rect(), border_radius=radius + i)
                 surface.blit(sh, (rect.x - i, rect.y + 4 - i))
+        elif self.style.get("cover_frame") == "ink":
+            pygame.draw.rect(surface, WHITE, rect.inflate(8, 8))
         else:
             pygame.draw.rect(surface, BLACK, rect.inflate(8, 8))
         surface.blit(img, rect)
-        if not self.modern:
+        if not self.modern and self.style.get("cover_frame") != "ink":
             pygame.draw.rect(surface, GREY, rect.inflate(8, 8), 2)
 
     # ------------------------------------------------------------ effects
@@ -273,6 +305,15 @@ class Display:
         w = int(fr.get("width", 10))
         pygame.draw.rect(surface, fr["outer"], (0, 0, self.w, self.h), w)
         pygame.draw.rect(surface, fr["inner"], (w, w, self.w - 2 * w, self.h - 2 * w), 2)
+        if fr.get("screws"):
+            hi = tuple(min(255, c + 30) for c in fr["outer"])
+            lo = tuple(max(0, c - 70) for c in fr["outer"])
+            pygame.draw.rect(surface, hi, (0, 0, self.w, 2))                       # bevel: lit top edge
+            pygame.draw.rect(surface, lo, (0, self.h - 2, self.w, 2))              # shaded bottom edge
+            for cx, cy in ((w // 2, w // 2), (self.w - w // 2, w // 2), (w // 2, self.h - w // 2), (self.w - w // 2, self.h - w // 2)):
+                pygame.draw.circle(surface, lo, (cx, cy), 4)
+                pygame.draw.circle(surface, hi, (cx, cy), 3)
+                pygame.draw.line(surface, lo, (cx - 2, cy + 1), (cx + 2, cy - 1), 1)
 
     def flip(self) -> float:
         if self.style.get("frame"):

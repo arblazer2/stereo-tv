@@ -72,6 +72,9 @@ class Channel:
                 d.text(d.fit_text(right, "xs", room), "xs", D.GREY, (d.safe.right, bar.top + 8), anchor="topright", shadow=False)
             pygame.draw.rect(surface, D.BLUE, (d.safe.left, bar.bottom - 4, d.safe.width, 2))
             return bar
+        if d.style.get("design"):
+            from stereotv.channels import designs
+            return designs.header(self, surface, right)
         bar = pygame.Rect(0, d.safe.top, d.w, 44)
         pygame.draw.rect(surface, D.BLUE, bar)
         pygame.draw.rect(surface, D.CYAN, bar.inflate(0, 4), 2)

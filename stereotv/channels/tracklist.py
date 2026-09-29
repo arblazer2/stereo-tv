@@ -80,8 +80,9 @@ class TracklistChannel(Channel):
         cols = [self._sides[self._page % len(self._sides)]]
         colw = safe.width
         cur_side, cur_pos = self.now.side, self.now.track
-        img = thumb(rel.cover_path, 64)
-        surface.blit(img, img.get_rect(bottomright=(safe.right, safe.bottom - 20)))
+        if not d.style.get("design"):              # design themes frame the channel tightly; skip the thumb
+            img = thumb(rel.cover_path, 64)
+            surface.blit(img, img.get_rect(bottomright=(safe.right, safe.bottom - 20)))
         for ci, (name, tracks) in enumerate(cols):
             x = safe.left + ci * colw
             y = bar.bottom + 14

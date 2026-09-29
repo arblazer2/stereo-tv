@@ -484,6 +484,7 @@ class Identifier(threading.Thread):
         remaining = max(3.0, dur - pos)
         self.track_end_at = time.monotonic() + remaining
         self.track_ref = (release_id, int(track["seq"]))
+        self.now.set_progress(max(0.0, dur - remaining), dur)
         log.info("track clock: %s ends in %.0fs (dur %.0fs, at %.0fs)", track.get("position"), remaining, dur, pos)
 
     def _advance(self, con: sqlite3.Connection, t: float) -> None:
@@ -509,6 +510,7 @@ class Identifier(threading.Thread):
         dur = parse_duration(nxt["duration"])
         self.track_ref = (rid, seq + 1)
         self.track_end_at = (t + dur) if dur else None
+        self.now.set_progress(0.0, dur)
         self.verify_at = t + self.verify_delay
 
 

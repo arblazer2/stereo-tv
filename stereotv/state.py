@@ -56,6 +56,9 @@ class NowPlaying:
     override_until: float = 0.0   # monotonic; auto-ID paused until then
     last_played: Release | None = None   # last *real* play (auto/manual/shazam), survives clear()
     last_played_at: float = 0.0          # wall clock
+    track_pos0: float = 0.0              # song position (s) at track_t0
+    track_t0: float = 0.0                # monotonic time of that position (0 = unknown)
+    track_dur: float = 0.0               # track length (s), 0 = unknown
     version: int = 0              # bump so channels can detect changes cheaply
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
@@ -69,6 +72,7 @@ class NowPlaying:
             self.side = side
             self.track = track
             self.track_title = track_title
+            self.track_t0 = self.track_dur = 0.0
             self.updated_at = time.monotonic()
             if release is not None and source in ("auto", "manual", "shazam", "acoustid"):
                 self.last_played = release
@@ -77,6 +81,18 @@ class NowPlaying:
             if override_minutes:
                 self.override_until = time.monotonic() + override_minutes * 60
             self.version += 1
+
+    def set_progress(self, pos: float | None, dur: float | None) -> None:
+        if pos is None or not dur:
+            self.track_t0 = self.track_dur = 0.0
+        else:
+            self.track_pos0, self.track_t0, self.track_dur = float(pos), time.monotonic(), float(dur)
+
+    def progress(self) -> tuple[float, float] | None:
+        """(elapsed, duration) seconds for the current track, if the track clock knows them."""
+        if not (self.track_t0 and self.track_dur and self.release):
+            return None
+        return min(self.track_dur, self.track_pos0 + (time.monotonic() - self.track_t0)), self.track_dur
 
     def clear(self) -> None:
         """Nothing playing (long silence). Keeps last_played and any manual override timer."""

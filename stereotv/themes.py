@@ -23,6 +23,8 @@ BARLOW = str(FONT_DIR / "BarlowCondensed-SemiBold.ttf")
 POPPINS = str(FONT_DIR / "Poppins-SemiBold.ttf")
 POPPINS_REG = str(FONT_DIR / "Poppins-Regular.ttf")
 PRESSSTART = str(FONT_DIR / "PressStart2P-Regular.ttf")
+ARCHIVO = str(FONT_DIR / "ArchivoBlack-Regular.ttf")
+SPACEMONO = str(FONT_DIR / "SpaceMono-Bold.ttf")
 
 # "style" = layout layer. Missing keys fall back to the classic cable-box look.
 CABLE_STYLE = {"layout": "cable", "radius": 0, "backdrop": False}
@@ -121,6 +123,33 @@ THEMES: dict[str, dict] = {
         "font": PRESSSTART, "font2": VT323, "mono": VT323, "scale": 0.72, "shadow": False,
         "style": {"layout": "cable", "radius": 0, "backdrop": False, "body_scale": 1.75,
                   "frame": {"outer": (190, 184, 168), "inner": (72, 68, 60), "width": 10}},
+    },
+    # ---- design themes: channels 1 and 4 are ports of the 960x720 artboards (channels/designs.py);
+    # the palette/fonts below style every other channel inside each theme's frame.
+    "guide": {
+        "label": "CABLE GUIDE",
+        "colors": {"BLACK": (5, 11, 61), "WHITE": (255, 255, 255), "GREY": (185, 200, 255), "DARK": (5, 11, 61),
+                   "NAVY": (10, 20, 112), "BLUE": (36, 71, 214), "CYAN": (255, 225, 77), "YELLOW": (255, 225, 77),
+                   "AMBER": (255, 159, 67), "RED": (255, 90, 90), "GREEN": (125, 255, 176)},
+        "font": str(FONT_DIR / "BarlowCondensed-Bold.ttf"), "font2": str(FONT_DIR / "BarlowCondensed-Medium.ttf"),
+        "mono": str(FONT_DIR / "BarlowCondensed-SemiBold.ttf"), "scale": 1.1, "shadow": False,
+        "style": {"layout": "cable", "radius": 0, "backdrop": False, "scanlines": False, "design": "guide"},
+    },
+    "faceplate": {
+        "label": "FACEPLATE",
+        "colors": {"BLACK": (12, 9, 6), "WHITE": (255, 207, 122), "GREY": (183, 154, 87), "DARK": (12, 9, 6),
+                   "NAVY": (12, 9, 6), "BLUE": (58, 40, 14), "CYAN": (255, 176, 46), "YELLOW": (255, 176, 46),
+                   "AMBER": (255, 176, 46), "RED": (232, 69, 44), "GREEN": (255, 207, 122)},
+        "font": VT323, "font2": VT323, "mono": VT323, "scale": 1.3, "shadow": False,
+        "style": {"layout": "cable", "radius": 0, "backdrop": False, "scanlines": False, "design": "faceplate"},
+    },
+    "sleeve": {
+        "label": "SLEEVE POSTER",
+        "colors": {"BLACK": (241, 237, 228), "WHITE": (17, 17, 17), "GREY": (85, 85, 85), "DARK": (241, 237, 228),
+                   "NAVY": (241, 237, 228), "BLUE": (220, 214, 200), "CYAN": (230, 58, 30), "YELLOW": (17, 17, 17),
+                   "AMBER": (230, 58, 30), "RED": (230, 58, 30), "GREEN": (15, 138, 95)},
+        "font": ARCHIVO, "font2": str(FONT_DIR / "SpaceMono-Regular.ttf"), "mono": SPACEMONO, "scale": 0.72, "shadow": False,
+        "style": {"layout": "cable", "radius": 0, "backdrop": False, "scanlines": False, "design": "sleeve"},
     },
 }
 ORDER = list(THEMES)
